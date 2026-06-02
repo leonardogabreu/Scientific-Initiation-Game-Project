@@ -16,13 +16,12 @@ public class ChasingLettersGameManager : MonoBehaviour
     public string targetWord = "";
     public WordData[] levelWords;
     public Image currentWordImageUI;
-    [SerializeField] private DeliverTablesManager deliverTablesManager;
     
     [Header("Hint Manager")]
 
     [SerializeField] private TMP_Text hintText;
     public float hintTimer = 30.0f; // Fazer lógica depois
-    void Start()
+    void Awake()
     {
         // Populate the object pool at the start of the game
         for(int i = 0; i < numberOfInstances; i++)
@@ -33,8 +32,6 @@ public class ChasingLettersGameManager : MonoBehaviour
         }
 
         levelWords = Resources.LoadAll<WordData>("WordData");
-
-        deliverTablesManager.resetAllTables();
 
         if (levelWords != null && levelWords.Length > 0)
         {

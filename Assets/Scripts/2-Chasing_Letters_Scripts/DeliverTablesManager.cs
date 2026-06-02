@@ -11,9 +11,10 @@ public class DeliverTablesManager : MonoBehaviour
     
     [SerializeField] private ChasingLettersGameManager gameManager;
 
-    void Awake()
+    void Start()
     {
         FillTablesLists();
+        resetAllTables();
         spawnTables();
     }
 
