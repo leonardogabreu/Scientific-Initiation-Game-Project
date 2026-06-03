@@ -11,6 +11,7 @@ public class PlayerFactoryController : MonoBehaviour
     public TMP_Text carriedLetterText;
     public ChasingLettersGameManager gameManager;
     public SubmitZoneManager submitZoneManager;
+    public HintManager hintManager;
 
     [Header("Animator")]
     private Animator animator;
@@ -28,44 +29,7 @@ public class PlayerFactoryController : MonoBehaviour
             animator.SetFloat("Speed", agent.velocity.magnitude);
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && interactionZone != "" && gameManager.currentGameState == GameStateCL.Playing)
-        {
-            // Pegar da Esteira
-            if (interactionZone == "LetterBoxInteractionZone" && interactionObject != null && !isCarrying) 
-            {
-                carryLetterBox();
-            }
-            // Interações com a Mesa (Pegar ou Soltar)  
-            else if ((interactionZone == "TableBenchInteractionZone" || interactionZone == "DeliverZone") && interactionObject != null)
-            {
-                GameObject tableLetter = interactionObject.transform.GetChild(0).gameObject;
-
-                if (isCarrying && !tableLetter.activeInHierarchy)
-                {
-                    // Se o robô tem uma letra e a mesa está vazia, solta
-                    dropLetterBox();
-                }
-                else if (!isCarrying && tableLetter.activeInHierarchy)
-                {
-                    // Se o robô está de mãos vazias e a mesa tem uma letra, pega
-                    carryLetterBox();
-                }
-            }
-            else if(interactionZone == "SubmitZone")
-            {
-                if (submitZoneManager != null)
-                {
-                    submitZoneManager.evaluateWord();
-                }
-            }
-            else if(interactionZone == "TrashZone")
-            {
-                carriedLetter.SetActive(false);
-                isCarrying = false;
-                animator.SetBool("IsCarrying", false);
-                carriedLetterText.text = "";
-            }
-        }
+        InteractWithGameObject();
     }
 
     void OnTriggerEnter(Collider other)
@@ -111,6 +75,62 @@ public class PlayerFactoryController : MonoBehaviour
             {
                 interactionZone = "TrashZone";
             }
+            else if (other.CompareTag("HintButtonZone"))
+            {
+                interactionZone = "HintButtonZone";
+            }
+        }
+    }
+
+    private void InteractWithGameObject()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && interactionZone != "" && gameManager.currentGameState == GameStateCL.Playing)
+        {
+            // Carry from treadmill
+            if (interactionZone == "LetterBoxInteractionZone" && interactionObject != null && !isCarrying) 
+            {
+                carryLetterBox();
+            }
+            // Table interactions (carry or drop) 
+            else if ((interactionZone == "TableBenchInteractionZone" || interactionZone == "DeliverZone") && interactionObject != null)
+            {
+                GameObject tableLetter = interactionObject.transform.GetChild(0).gameObject;
+
+                if (isCarrying && !tableLetter.activeInHierarchy) // Is carrying and doesn't have a box
+                {
+                    dropLetterBox();
+                }
+                else if (!isCarrying && tableLetter.activeInHierarchy) // Is not carrying and has a box
+                {
+                    carryLetterBox();
+                }
+            }
+            else if(interactionZone == "TrashZone")
+            {
+                if (carriedLetter != null)
+                {
+                    carriedLetter.SetActive(false);
+                }
+                
+                isCarrying = false;
+                
+                if (animator != null)
+                {
+                    animator.SetBool("IsCarrying", false);
+                }
+                
+                if (carriedLetterText != null)
+                {
+                    carriedLetterText.text = "";
+                }
+            }
+            else if(interactionZone == "HintButtonZone")
+            {
+                if (hintManager != null)
+                {
+                    hintManager.ShowHint();
+                }
+            }
         }
     }
 
@@ -127,7 +147,7 @@ public class PlayerFactoryController : MonoBehaviour
                     interactionObject = null;
                 }
             }
-            else if ( other.CompareTag("ShowWord") || other.CompareTag("SubmitZone") || other.CompareTag("TrashZone"))
+            else if ( other.CompareTag("ShowWord") || other.CompareTag("SubmitZone") || other.CompareTag("TrashZone") || other.CompareTag("HintButtonZone"))
             {
                 interactionZone = "";
             }

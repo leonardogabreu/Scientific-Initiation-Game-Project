@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using TMPro;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 public enum GameStateCL { Start, Playing, Over }
@@ -20,7 +22,7 @@ public class ChasingLettersGameManager : MonoBehaviour
     [Header("Hint Manager")]
 
     [SerializeField] private TMP_Text hintText;
-    public float hintTimer = 30.0f; // Fazer lógica depois
+    
     void Awake()
     {
         // Populate the object pool at the start of the game

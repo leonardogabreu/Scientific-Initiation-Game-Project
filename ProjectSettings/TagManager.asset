@@ -11,9 +11,9 @@ TagManager:
   - LetterBoxInteractionZone
   - SubmitZone
   - DeliverZone
-  - ShowWord
   - TableBenchInteractionZone
   - TrashZone
+  - HintButtonZone
   layers:
   - Default
   - TransparentFX
