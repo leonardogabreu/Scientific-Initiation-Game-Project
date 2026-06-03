@@ -65,6 +65,7 @@ GameObject:
   - component: {fileID: 2466956690305049260}
   - component: {fileID: 421248485358507622}
   - component: {fileID: 2639043830291294096}
+  - component: {fileID: 2900609390959989485}
   m_Layer: 0
   m_Name: Table_Bench
   m_TagString: Untagged
@@ -167,6 +168,26 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.019021528, y: 0.01726029, z: 0.013542089}
   m_Center: {x: -0.00001956989, y: 4.6099552e-10, z: 0.00001957012}
+--- !u!114 &2900609390959989485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2222648684386498483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &6340048570298613552
 GameObject:
   m_ObjectHideFlags: 0

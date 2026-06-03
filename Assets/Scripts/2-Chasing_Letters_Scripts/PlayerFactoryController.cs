@@ -58,6 +58,13 @@ public class PlayerFactoryController : MonoBehaviour
                     submitZoneManager.evaluateWord();
                 }
             }
+            else if(interactionZone == "TrashZone")
+            {
+                carriedLetter.SetActive(false);
+                isCarrying = false;
+                animator.SetBool("IsCarrying", false);
+                carriedLetterText.text = "";
+            }
         }
     }
 
@@ -96,9 +103,13 @@ public class PlayerFactoryController : MonoBehaviour
             {
                 interactionZone = "ShowWord";
             }
-            else if (other.CompareTag("SubmitZone"))    // TODO - já dá pra fazer...
+            else if (other.CompareTag("SubmitZone"))
             {
                 interactionZone = "SubmitZone";
+            }
+            else if (other.CompareTag("TrashZone"))
+            {
+                interactionZone = "TrashZone";
             }
         }
     }
@@ -116,7 +127,7 @@ public class PlayerFactoryController : MonoBehaviour
                     interactionObject = null;
                 }
             }
-            else if ( other.CompareTag("ShowWord") || other.CompareTag("SubmitZone"))
+            else if ( other.CompareTag("ShowWord") || other.CompareTag("SubmitZone") || other.CompareTag("TrashZone"))
             {
                 interactionZone = "";
             }
