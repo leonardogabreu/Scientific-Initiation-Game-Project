@@ -63,10 +63,6 @@ public class PlayerFactoryController : MonoBehaviour
                     interactionObject = other.transform.parent.gameObject;
                 }
             }
-            else if (other.CompareTag("ShowWord"))  // TODO
-            {
-                interactionZone = "ShowWord";
-            }
             else if (other.CompareTag("SubmitZone"))
             {
                 interactionZone = "SubmitZone";
@@ -147,7 +143,7 @@ public class PlayerFactoryController : MonoBehaviour
                     interactionObject = null;
                 }
             }
-            else if ( other.CompareTag("ShowWord") || other.CompareTag("SubmitZone") || other.CompareTag("TrashZone") || other.CompareTag("HintButtonZone"))
+            else if (other.CompareTag("SubmitZone") || other.CompareTag("TrashZone") || other.CompareTag("HintButtonZone"))
             {
                 interactionZone = "";
             }

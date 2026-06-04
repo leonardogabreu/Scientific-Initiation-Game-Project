@@ -1605,7 +1605,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &406966447
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1711,7 +1711,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -22.87989, y: 0, z: -24.612709, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -2980,7 +2980,7 @@ GameObject:
   - component: {fileID: 865248640}
   - component: {fileID: 865248639}
   m_Layer: 0
-  m_Name: ShowWordButton
+  m_Name: HintButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6438,7 +6438,7 @@ GameObject:
   - component: {fileID: 1940034086}
   - component: {fileID: 1940034087}
   m_Layer: 0
-  m_Name: ShowWordZone
+  m_Name: HintButtonZone
   m_TagString: HintButtonZone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
