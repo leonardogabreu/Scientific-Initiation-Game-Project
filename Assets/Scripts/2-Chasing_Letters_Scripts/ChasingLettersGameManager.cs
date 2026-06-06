@@ -1,19 +1,15 @@
 using System.Collections.Generic;
 using TMPro;
-using Unity.Burst.CompilerServices;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.UI;
-
-public enum GameStateCL { Start, Playing, Over }
 
 public class ChasingLettersGameManager : MonoBehaviour
 {
-    public GameStateCL currentGameState;
     [Header("Letter Boxes Pool")]
     public GameObject letterBoxPrefab;
     public List<GameObject> letterBoxesInstances = new List<GameObject>();
     private int numberOfInstances = 15; 
+
     [Header("Word Database")]
     public string targetWord = "";
     public WordData[] levelWords;

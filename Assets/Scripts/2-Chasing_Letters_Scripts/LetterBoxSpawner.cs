@@ -4,9 +4,10 @@ using TMPro;
 public class LetterBoxSpawner : MonoBehaviour
 {
     private ChasingLettersGameManager gameManager;
+    [SerializeField] private GameCycleManager gameCycleManager; 
     public bool isALeftSpawner;
     private int letterRotationFixingConst;
-    private float spawnTimer = 2f;
+    private float spawnTimer = 1f;
     private float timeCounter = 0f;
 
     private int correctLetterChance = 70; 
@@ -27,34 +28,36 @@ public class LetterBoxSpawner : MonoBehaviour
 
     void Update()
     {
-        timeCounter += Time.deltaTime;
+        if(gameCycleManager.currentGameState == GameStateCL.Playing){
+            timeCounter += Time.deltaTime;
 
-        if (timeCounter >= spawnTimer)
-        {
-            GameObject letter = gameManager.GetLetterBoxInstance();
+            if (timeCounter >= spawnTimer)
+            {
+                GameObject letter = gameManager.GetLetterBoxInstance();
 
-            if (letter != null)   
-            {   
-                // Align the letter box with the spawner's transform
-                letter.transform.localPosition = transform.position;
-                letter.transform.localRotation = transform.rotation;
-                
-                TMP_Text letterText = letter.GetComponentInChildren<TMP_Text>();
-                if (letterText != null)
-                {
-                    letterText.text = GetWeightedRandomLetter();
+                if (letter != null)   
+                {   
+                    // Align the letter box with the spawner's transform
+                    letter.transform.localPosition = transform.position;
+                    letter.transform.localRotation = transform.rotation;
                     
-                    // A lot of bug correction from the letter position and rotation, with very specific numbers
-                    letterText.transform.localRotation = Quaternion.Euler(90, letterRotationFixingConst * 90, 0);
-                    letterText.transform.localPosition = new Vector3(-letterRotationFixingConst * 0.075f, 0.51f, -letterRotationFixingConst * 0.2f);
+                    TMP_Text letterText = letter.GetComponentInChildren<TMP_Text>();
+                    if (letterText != null)
+                    {
+                        letterText.text = GetWeightedRandomLetter();
+                        
+                        // A lot of bug correction from the letter position and rotation, with very specific numbers
+                        letterText.transform.localRotation = Quaternion.Euler(90, letterRotationFixingConst * 90, 0);
+                        letterText.transform.localPosition = new Vector3(-letterRotationFixingConst * 0.075f, 0.51f, -letterRotationFixingConst * 0.2f);
+                    }
+
+                    letter.SetActive(true);
                 }
 
-                letter.SetActive(true);
+                // Reset timer and randomize the next spawn delay
+                timeCounter = 0f;
+                spawnTimer = Random.Range(4.5f, 8);
             }
-
-            // Reset timer and randomize the next spawn delay
-            timeCounter = 0f;
-            spawnTimer = Random.Range(4.5f, 8);
         }
     }
 
@@ -74,6 +77,33 @@ public class LetterBoxSpawner : MonoBehaviour
             // Pick a completely random letter from the alphabet array
             int randomIndex = Random.Range(0, alphabet.Length);
             return alphabet[randomIndex].ToString();
+        }
+    }
+
+    void OnEnable()
+    {
+        // 
+        if (gameCycleManager != null)
+        {
+            gameCycleManager.onGameStateChanged += handleStateChange;
+        }
+    }
+
+    void OnDisable()
+    {
+        // Remove a inscrição por segurança de memória
+        if (gameCycleManager != null)
+        {
+            gameCycleManager.onGameStateChanged -= handleStateChange;
+        }
+    }
+
+    private void handleStateChange(GameStateCL newState)
+    {
+        if (newState == GameStateCL.Playing)
+        {
+            timeCounter = 0f;
+            spawnTimer = Random.Range(4.5f, 8);
         }
     }
 }

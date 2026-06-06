@@ -6,12 +6,12 @@ public class ChasingLettersGridClicker : MonoBehaviour
     public float gridSize = 1f;
     public Transform cursorVisual; 
     public NavMeshAgent robotAgent; 
-    public ChasingLettersGameManager gameManager;
+    public GameCycleManager gameCycleManager;
     public LayerMask floorMask;
 
     void Update()
     {
-       if (Input.GetMouseButtonDown(0) && gameManager.currentGameState == GameStateCL.Playing)
+       if (Input.GetMouseButtonDown(0) && gameCycleManager.currentGameState == GameStateCL.Playing)
         {
             DetectClickAndMove();
         }
@@ -39,6 +39,36 @@ public class ChasingLettersGridClicker : MonoBehaviour
             if (robotAgent != null)
             {
                 robotAgent.SetDestination(gridDestination);
+            }
+        }
+    }
+
+    void OnEnable()
+    {
+        if (gameCycleManager != null)
+        {
+            gameCycleManager.onGameStateChanged += handleStateChange;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (gameCycleManager != null)
+        {
+            gameCycleManager.onGameStateChanged -= handleStateChange;
+        }
+    }
+
+    private void handleStateChange(GameStateCL newState)
+    {
+        if (newState == GameStateCL.Start)
+        {
+            if(cursorVisual != null && robotAgent != null)
+            {
+                cursorVisual.position = new Vector3(0, 0.1f, 0);
+                
+                robotAgent.ResetPath();
+                robotAgent.Warp(new Vector3(0, 0.16f, 0)); 
             }
         }
     }

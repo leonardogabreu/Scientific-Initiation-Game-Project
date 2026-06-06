@@ -2,16 +2,19 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class PlayerFactoryController : MonoBehaviour
+public class PlayerControllerCL : MonoBehaviour
 {
     public bool isCarrying = false;
     public string interactionZone = "";
     public GameObject interactionObject;
     public GameObject carriedLetter;
     public TMP_Text carriedLetterText;
+
+    [Header("Managers")]
     public ChasingLettersGameManager gameManager;
     public SubmitZoneManager submitZoneManager;
     public HintManager hintManager;
+    public GameCycleManager gameCycleManager;
 
     [Header("Animator")]
     private Animator animator;
@@ -80,7 +83,7 @@ public class PlayerFactoryController : MonoBehaviour
 
     private void InteractWithGameObject()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && interactionZone != "" && gameManager.currentGameState == GameStateCL.Playing)
+        if (Input.GetKeyDown(KeyCode.Space) && interactionZone != "" && gameCycleManager.currentGameState == GameStateCL.Playing)
         {
             // Carry from treadmill
             if (interactionZone == "LetterBoxInteractionZone" && interactionObject != null && !isCarrying) 
@@ -125,6 +128,13 @@ public class PlayerFactoryController : MonoBehaviour
                 if (hintManager != null)
                 {
                     hintManager.ShowHint();
+                }
+            }
+            else if(interactionZone == "SubmitZone")
+            {
+                if (submitZoneManager != null)
+                {
+                    submitZoneManager.evaluateWord();
                 }
             }
         }
