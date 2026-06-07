@@ -6,9 +6,10 @@ using UnityEngine.AI;
 public enum GameStateCL { Start, Playing, Over }
 public class GameCycleManager : MonoBehaviour
 {
+    [SerializeField] ChasingLettersGameManager gameManager;
     [Header("Game Loop")]
     public GameStateCL currentGameState = GameStateCL.Start;
-    [SerializeField ]private int wordsToWin = 3;
+    [SerializeField] private int wordsToWin = 3;
     private int correctWords = 0;
     public event Action<GameStateCL> onGameStateChanged;
 
@@ -17,6 +18,8 @@ public class GameCycleManager : MonoBehaviour
     [Header("UI Panels")]
     public GameObject startPanel;
     public GameObject playingPanel;
+    public GameObject[] starsArray;
+    public GameObject[] starsOutlineArray;
     public GameObject gameOverPanel;
 
     void Start()
@@ -36,12 +39,26 @@ public class GameCycleManager : MonoBehaviour
 
                 correctWords = 0;
             }
-            else if(gameStateCL == GameStateCL.Playing)
+            else if(gameStateCL == GameStateCL.Playing  && starsArray != null && starsOutlineArray != null)
             {
                 currentGameState = GameStateCL.Playing;
                 startPanel.SetActive(false);
                 playingPanel.SetActive(true);
                 gameOverPanel.SetActive(false);
+
+                foreach(GameObject star in starsArray)
+                {
+                    star.SetActive(false);
+                }
+                foreach(GameObject starOutline in starsOutlineArray)
+                {
+                    starOutline.SetActive(true);
+                }
+
+                foreach (GameObject letterBox in gameManager.letterBoxesInstances)
+                {
+                    letterBox.SetActive(false);
+                }
             }
             else
             {
@@ -64,6 +81,12 @@ public class GameCycleManager : MonoBehaviour
     public void addScore()
     {
         correctWords++;
+
+        if(starsArray != null && starsOutlineArray != null)
+        {
+            starsArray[correctWords-1].SetActive(false);
+            starsOutlineArray[correctWords-1].SetActive(true);
+        }
 
         if(correctWords >= wordsToWin)
         {

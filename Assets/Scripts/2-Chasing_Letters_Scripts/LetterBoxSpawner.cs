@@ -48,7 +48,7 @@ public class LetterBoxSpawner : MonoBehaviour
                         
                         // A lot of bug correction from the letter position and rotation, with very specific numbers
                         letterText.transform.localRotation = Quaternion.Euler(90, letterRotationFixingConst * 90, 0);
-                        letterText.transform.localPosition = new Vector3(-letterRotationFixingConst * 0.075f, 0.51f, -letterRotationFixingConst * 0.2f);
+                        letterText.transform.localPosition = new Vector3(-letterRotationFixingConst * 0.1f, 0.51f, -letterRotationFixingConst * 0.34f);
                     }
 
                     letter.SetActive(true);
