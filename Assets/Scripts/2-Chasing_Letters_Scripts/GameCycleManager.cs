@@ -84,8 +84,8 @@ public class GameCycleManager : MonoBehaviour
 
         if(starsArray != null && starsOutlineArray != null)
         {
-            starsArray[correctWords-1].SetActive(false);
-            starsOutlineArray[correctWords-1].SetActive(true);
+            starsArray[correctWords-1].SetActive(true);
+            starsOutlineArray[correctWords-1].SetActive(false);
         }
 
         if(correctWords >= wordsToWin)

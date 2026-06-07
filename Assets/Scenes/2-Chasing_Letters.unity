@@ -1466,6 +1466,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f905c6cb3b7d815dbb2fe7d44dd85f93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameCycleManager
+  gameManager: {fileID: 1205691429}
   currentGameState: 0
   wordsToWin: 3
   navMeshAgent: {fileID: 1039405042}
@@ -4537,7 +4538,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &946514668
 Transform:
   m_ObjectHideFlags: 0
