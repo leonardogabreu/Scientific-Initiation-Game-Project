@@ -36,10 +36,9 @@ public class LetterBoxSpawner : MonoBehaviour
                 GameObject letter = gameManager.GetLetterBoxInstance();
 
                 if (letter != null)   
-                {   
-                    // Align the letter box with the spawner's transform
+                {
                     letter.transform.localPosition = transform.position;
-                    letter.transform.localRotation = transform.rotation;
+                    letter.transform.localRotation = Quaternion.Euler(0, -letterRotationFixingConst*90, 0);
                     
                     TMP_Text letterText = letter.GetComponentInChildren<TMP_Text>();
                     if (letterText != null)
