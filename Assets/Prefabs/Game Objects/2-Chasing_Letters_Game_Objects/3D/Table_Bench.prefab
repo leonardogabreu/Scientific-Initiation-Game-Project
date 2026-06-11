@@ -66,7 +66,8 @@ GameObject:
   - component: {fileID: 421248485358507622}
   - component: {fileID: 2639043830291294096}
   - component: {fileID: 2900609390959989485}
-  m_Layer: 0
+  - component: {fileID: 1740427761296613125}
+  m_Layer: 7
   m_Name: Table_Bench
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -188,6 +189,19 @@ MonoBehaviour:
   m_IgnoreFromBuild: 0
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!114 &1740427761296613125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2222648684386498483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 794d09ffb7c420e1a89a78f8e91605a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableCL
+  type: 1
 --- !u!1001 &5495758223495152835
 PrefabInstance:
   m_ObjectHideFlags: 0

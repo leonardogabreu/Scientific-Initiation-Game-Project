@@ -5,10 +5,12 @@ using UnityEngine.AI;
 public class PlayerControllerCL : MonoBehaviour
 {
     public bool isCarrying = false;
-    public string interactionZone = "";
-    public GameObject interactionObject;
     public GameObject carriedLetter;
     public TMP_Text carriedLetterText;
+
+    [Header("Interaction Settings")]
+    public float interactionRadius = 1.5f;
+    public LayerMask interactionLayer; // Defina a Layer dos objetos interativos aqui
 
     [Header("Managers")]
     public ChasingLettersGameManager gameManager;
@@ -25,6 +27,7 @@ public class PlayerControllerCL : MonoBehaviour
         animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
     }
+
     void Update()
     {
         if (animator != null && agent != null)
@@ -32,154 +35,122 @@ public class PlayerControllerCL : MonoBehaviour
             animator.SetFloat("Speed", agent.velocity.magnitude);
         }
 
-        InteractWithGameObject();
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        if (other != null)
+        if (Input.GetKeyDown(KeyCode.Space) && gameCycleManager != null && gameCycleManager.currentGameState == GameStateCL.Playing)
         {
-            if (other.CompareTag("LetterBoxInteractionZone")) 
-            {
-                interactionZone = "LetterBoxInteractionZone";
-
-                if (other.transform.parent != null)
-                {
-                    interactionObject = other.transform.parent.gameObject;
-                }
-            }
-            else if (other.CompareTag("TableBenchInteractionZone"))
-            {
-                interactionZone = "TableBenchInteractionZone";
-
-                if (other.transform.parent != null)
-                {
-                    interactionObject = other.transform.parent.gameObject;
-                }
-            }
-            else if (other.CompareTag("DeliverZone")) // TODO
-            {
-                interactionZone = "DeliverZone";
-
-                if(other.transform.parent != null)
-                {
-                    interactionObject = other.transform.parent.gameObject;
-                }
-            }
-            else if (other.CompareTag("SubmitZone"))
-            {
-                interactionZone = "SubmitZone";
-            }
-            else if (other.CompareTag("TrashZone"))
-            {
-                interactionZone = "TrashZone";
-            }
-            else if (other.CompareTag("HintButtonZone"))
-            {
-                interactionZone = "HintButtonZone";
-            }
+            interactWithClosest();
         }
     }
 
-    private void InteractWithGameObject()
+    private void interactWithClosest()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && interactionZone != "" && gameCycleManager.currentGameState == GameStateCL.Playing)
-        {
-            // Carry from treadmill
-            if (interactionZone == "LetterBoxInteractionZone" && interactionObject != null && !isCarrying) 
-            {
-                carryLetterBox();
-            }
-            // Table interactions (carry or drop) 
-            else if ((interactionZone == "TableBenchInteractionZone" || interactionZone == "DeliverZone") && interactionObject != null)
-            {
-                GameObject tableLetter = interactionObject.transform.GetChild(0).gameObject;
+        // Scans around the player
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, interactionRadius, interactionLayer);
+        
+        InteractableCL closestInteractable = null;
+        float closestDistance = Mathf.Infinity;
 
-                if (isCarrying && !tableLetter.activeInHierarchy) // Is carrying and doesn't have a box
+        // Searches nearest neighbor
+        foreach (Collider hitCollider in hitColliders)
+        {
+            InteractableCL interactable = hitCollider.GetComponent<InteractableCL>();
+            if (interactable != null)
+            {
+                float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
+                if (distance < closestDistance)
                 {
-                    dropLetterBox();
-                }
-                else if (!isCarrying && tableLetter.activeInHierarchy) // Is not carrying and has a box
-                {
-                    carryLetterBox();
+                    closestDistance = distance;
+                    closestInteractable = interactable;
                 }
             }
-            else if(interactionZone == "TrashZone")
-            {
+        }
+
+        // if found an interactible object, interacts with it
+        if (closestInteractable != null)
+        {
+            executeInteraction(closestInteractable);
+        }
+    }
+
+    private void executeInteraction(InteractableCL interactable)
+    {
+        GameObject interactionObject = interactable.gameObject;
+
+        switch (interactable.type)
+        {
+            case InteractableType.LetterBox:
+                if (!isCarrying)
+                {
+                    carryLetterBox(interactionObject, true);
+                }
+                break;
+
+            case InteractableType.Table:
+            case InteractableType.Deliver:
+                if (interactionObject.transform.childCount > 0)
+                {
+                    GameObject tableLetter = interactionObject.transform.GetChild(0).gameObject;
+
+                    if (isCarrying && !tableLetter.activeInHierarchy)
+                    {
+                        dropLetterBox(interactionObject);
+                    }
+                    else if (!isCarrying && tableLetter.activeInHierarchy)
+                    {
+                        carryLetterBox(interactionObject, false);
+                    }
+                }
+                break;
+
+            case InteractableType.Trash:
                 if (carriedLetter != null)
                 {
                     carriedLetter.SetActive(false);
                 }
-                
                 isCarrying = false;
-                
                 if (animator != null)
                 {
                     animator.SetBool("IsCarrying", false);
                 }
-                
                 if (carriedLetterText != null)
                 {
                     carriedLetterText.text = "";
                 }
-            }
-            else if(interactionZone == "HintButtonZone")
-            {
+                break;
+
+            case InteractableType.Hint:
                 if (hintManager != null)
                 {
                     hintManager.ShowHint();
                 }
-            }
-            else if(interactionZone == "SubmitZone")
-            {
+                break;
+
+            case InteractableType.Submit:
                 if (submitZoneManager != null)
                 {
                     submitZoneManager.evaluateWord();
                 }
-            }
+                break;
         }
     }
 
-    void OnTriggerExit(Collider other)
+    public void carryLetterBox(GameObject targetObj, bool isFromSpawner)
     {
-        if (other != null)
-        {
-            if (other.CompareTag("LetterBoxInteractionZone") || other.CompareTag("TableBenchInteractionZone") || other.CompareTag("DeliverZone"))
-            {
-                // Só zera a variável se estiver saindo do objeto atual
-                if (other.transform.parent != null && interactionObject == other.transform.parent.gameObject)
-                {
-                    interactionZone = "";
-                    interactionObject = null;
-                }
-            }
-            else if (other.CompareTag("SubmitZone") || other.CompareTag("TrashZone") || other.CompareTag("HintButtonZone"))
-            {
-                interactionZone = "";
-            }
-        }
-    }
-
-    public void carryLetterBox()
-    {
-        if (interactionObject != null && carriedLetter != null && carriedLetterText != null)
+        if (carriedLetter != null && carriedLetterText != null)
         {
             GameObject targetBox = null;
 
-            // Define quem é a caixa a ser pega (a própria ou a filha da mesa)
-            if (interactionZone == "LetterBoxInteractionZone")
+            if (isFromSpawner)
             {
-                targetBox = interactionObject;
+                targetBox = targetObj;
             }
-            else if (interactionZone == "TableBenchInteractionZone" || interactionZone == "DeliverZone")
+            else if (targetObj.transform.childCount > 0)
             {
-                targetBox = interactionObject.transform.GetChild(0).gameObject;
+                targetBox = targetObj.transform.GetChild(0).gameObject;
             }
 
             if (targetBox != null)
             {
                 TMP_Text targetBoxText = targetBox.GetComponentInChildren<TMP_Text>();
-                
                 if (targetBoxText != null)
                 {
                     carriedLetterText.text = targetBoxText.text;
@@ -187,23 +158,24 @@ public class PlayerControllerCL : MonoBehaviour
 
                 carriedLetter.SetActive(true);
                 targetBox.SetActive(false);
-                
                 isCarrying = true;
-                animator.SetBool("IsCarrying", true);
+
+                if (animator != null)
+                {
+                    animator.SetBool("IsCarrying", true);
+                }
             }
         }
     }
 
-    public void dropLetterBox()
+    public void dropLetterBox(GameObject targetObj)
     {
-        if (interactionObject != null)
+        if (targetObj.transform.childCount > 0)
         {
-            GameObject interactionLetter = interactionObject.transform.GetChild(0).gameObject;
-            
+            GameObject interactionLetter = targetObj.transform.GetChild(0).gameObject;
             if (interactionLetter != null)
             {
                 TMP_Text interactionLetterText = interactionLetter.GetComponentInChildren<TMP_Text>();
-
                 if (interactionLetterText != null)
                 {
                     interactionLetterText.text = carriedLetterText.text;
@@ -211,10 +183,13 @@ public class PlayerControllerCL : MonoBehaviour
 
                 interactionLetter.SetActive(true);
                 carriedLetter.SetActive(false);
-                
                 isCarrying = false;
-                animator.SetBool("IsCarrying", false);
+
+                if (animator != null)
+                {
+                    animator.SetBool("IsCarrying", false);
+                }
             }
         }
     }
-}
+} 

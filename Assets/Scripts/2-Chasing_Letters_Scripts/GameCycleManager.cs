@@ -18,9 +18,9 @@ public class GameCycleManager : MonoBehaviour
     [Header("UI Panels")]
     public GameObject startPanel;
     public GameObject playingPanel;
+    public GameObject gameOverPanel;
     public GameObject[] starsArray;
     public GameObject[] starsOutlineArray;
-    public GameObject gameOverPanel;
 
     void Start()
     {
