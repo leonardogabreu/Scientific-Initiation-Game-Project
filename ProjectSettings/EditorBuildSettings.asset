@@ -5,6 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/0-Main_Menu.unity
+    guid: e11006b998295e56c8083eaccad9d443
   - enabled: 0
     path: Assets/Scenes/1-Fruit_Sorting.unity
     guid: 99c9720ab356a0642a771bea13969a05

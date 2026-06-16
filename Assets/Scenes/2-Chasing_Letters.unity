@@ -1350,6 +1350,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameCycleManager
   gameManager: {fileID: 1205691429}
+  dataCollectionManager: {fileID: 1002059333}
   currentGameState: 0
   wordsToWin: 3
   navMeshAgent: {fileID: 1039405042}
@@ -5189,6 +5190,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 994222422}
   m_CullTransparentMesh: 1
+--- !u!1 &1002059331
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1002059332}
+  - component: {fileID: 1002059333}
+  m_Layer: 0
+  m_Name: DataCollectionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1002059332
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1002059331}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1191273372}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1002059333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1002059331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90b63933268e5a09eb10c2ab0cfc6968, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DataCollectionManager
 --- !u!1001 &1027215331
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6553,6 +6598,7 @@ Transform:
   - {fileID: 1205691427}
   - {fileID: 275050933}
   - {fileID: 1578943879}
+  - {fileID: 1002059332}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1205691425
@@ -10964,6 +11010,10 @@ PrefabInstance:
       propertyPath: deliverTablesManager
       value: 
       objectReference: {fileID: 1578943878}
+    - target: {fileID: 5485141111811917716, guid: c0620601de95297799b99ffade0b16c8, type: 3}
+      propertyPath: dataCollectionManager
+      value: 
+      objectReference: {fileID: 1002059333}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

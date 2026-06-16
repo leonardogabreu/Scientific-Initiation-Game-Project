@@ -7,6 +7,8 @@ public enum GameStateCL { Start, Playing, Over }
 public class GameCycleManager : MonoBehaviour
 {
     [SerializeField] ChasingLettersGameManager gameManager;
+    [SerializeField] DataCollectionManager dataCollectionManager;
+
     [Header("Game Loop")]
     public GameStateCL currentGameState = GameStateCL.Start;
     [SerializeField] private int wordsToWin = 3;
@@ -59,16 +61,25 @@ public class GameCycleManager : MonoBehaviour
                 {
                     letterBox.SetActive(false);
                 }
+
+                // Starts new game session
+                if (dataCollectionManager != null && gameManager != null)
+                {
+                    dataCollectionManager.startNewGameSession();
+                    dataCollectionManager.startNewWordAttempt(gameManager.targetWord); // Inicia a primeira palavra
+                }
             }
             else
             {
                 currentGameState = GameStateCL.Over;
+                
                 startPanel.SetActive(false);
                 playingPanel.SetActive(false);
                 gameOverPanel.SetActive(true); 
 
                 navMeshAgent.ResetPath();
-                // Atualizar os painéis que eu vou colocar (não só nesse, mas nos outros tbm), etc.
+
+                dataCollectionManager.finishAndSaveSession();
             }
 
             if (onGameStateChanged != null)
@@ -92,6 +103,7 @@ public class GameCycleManager : MonoBehaviour
         {
             changeGameState(GameStateCL.Over);
         }
+
     }
 
     public void StartGameFromButton(){
