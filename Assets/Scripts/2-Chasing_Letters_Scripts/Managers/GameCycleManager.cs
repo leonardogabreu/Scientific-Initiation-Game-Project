@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 
 
 public enum GameStateCL { Start, Playing, Over }
@@ -108,5 +109,10 @@ public class GameCycleManager : MonoBehaviour
 
     public void StartGameFromButton(){
         changeGameState(GameStateCL.Playing);
+    }
+
+    public void MainMenuFromButton()
+    {
+        SceneManager.LoadScene("0-Main_Menu");
     }
 }
