@@ -128,44 +128,42 @@ public class DeliverTablesManager : MonoBehaviour
 
     public void resetAllTables()
     {
-        // Limpa e oculta todo o vetor PAR
-        if (evenTablesList != null)
+    if (evenTablesList != null)
+    {
+        for (int i = 0; i < evenTablesList.Length; i++)
         {
-            for (int i = 0; i < evenTablesList.Length; i++)
+            if (evenTablesList[i] != null)
             {
-                if (evenTablesList[i] != null)
+                if (evenTablesList[i].transform.childCount > 0)
                 {
-                    // 1. Desativa a letra (filho)
                     GameObject letterObj = evenTablesList[i].transform.GetChild(0).gameObject;
                     if (letterObj != null)
                     {
                         letterObj.SetActive(false);
                     }
-
-                    // 2. Oculta a mesa (pai)
-                    evenTablesList[i].SetActive(false);
                 }
+                evenTablesList[i].SetActive(false);
             }
         }
+    }
 
-        // Limpa e oculta todo o vetor ÍMPAR
-        if (oddTablesList != null)
+    if (oddTablesList != null)
+    {
+        for (int i = 0; i < oddTablesList.Length; i++)
         {
-            for (int i = 0; i < oddTablesList.Length; i++)
+            if (oddTablesList[i] != null)
             {
-                if (oddTablesList[i] != null)
+                if (oddTablesList[i].transform.childCount > 0)
                 {
-                    // 1. Desativa a letra (filho)
                     GameObject letterObj = oddTablesList[i].transform.GetChild(0).gameObject;
                     if (letterObj != null)
                     {
                         letterObj.SetActive(false);
                     }
-
-                    // 2. Oculta a mesa (pai)
-                    oddTablesList[i].SetActive(false);
                 }
+                oddTablesList[i].SetActive(false);
             }
         }
     }
+}
 }

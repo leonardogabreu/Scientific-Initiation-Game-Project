@@ -42,7 +42,7 @@ public class ChasingLettersGameManager : MonoBehaviour
         // Search the pool for the first available (inactive) letter box
         for (int i = 0; i < letterBoxesInstances.Count; i++)
         {
-            if (!letterBoxesInstances[i].activeInHierarchy)
+            if (letterBoxesInstances[i] != null && !letterBoxesInstances[i].activeInHierarchy)
             {
                 return letterBoxesInstances[i];
             }
