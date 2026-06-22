@@ -26,16 +26,22 @@ public class SubmitZoneManager : MonoBehaviour
                 {
                     dataCollectionManager.finishWordAttempt(); // Saves the correct word
                 }
-
-                deliverTablesManager.resetAllTables();
-                gameManager.SelectNewWord();
-                deliverTablesManager.spawnTables();
-                
+                if (deliverTablesManager != null)
+                {
+                    deliverTablesManager.resetAllTables();
+                }
+                if (gameManager != null)
+                {
+                  gameManager.SelectNewWord();  
+                } 
+                if(deliverTablesManager!=null)
+                {
+                    deliverTablesManager.spawnTables();
+                }
                 if (dataCollectionManager != null && gameManager != null)
                 {
                     dataCollectionManager.startNewWordAttempt(gameManager.targetWord); // Tracks new word
                 }
-
                 if(gameCycleManager != null)
                 {
                     gameCycleManager.addScore();
@@ -51,7 +57,11 @@ public class SubmitZoneManager : MonoBehaviour
             audioSource.PlayOneShot(deliverWrongSFX);
             Instantiate(deliverWrongVFX, transform.position, quaternion.identity);
 
-            dataCollectionManager.registerMistake();
+                if (dataCollectionManager != null)
+                {
+                    dataCollectionManager.registerMistake();
+                }
+            
             }
         }
     }
