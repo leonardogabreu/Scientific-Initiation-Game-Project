@@ -58,9 +58,15 @@ public class GameCycleManager : MonoBehaviour
                     starOutline.SetActive(true);
                 }
 
-                foreach (GameObject letterBox in gameManager.letterBoxesInstances)
+                if (gameManager.letterBoxesInstances != null)
                 {
-                    letterBox.SetActive(false);
+                    foreach (GameObject letterBox in gameManager.letterBoxesInstances)
+                    {
+                        if (letterBox != null) 
+                        {
+                            letterBox.SetActive(false);
+                        }
+                    }
                 }
 
                 // Starts new game session
