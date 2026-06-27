@@ -13,6 +13,7 @@ public class ChasingLettersGameManager : MonoBehaviour
     [Header("Word Database")]
     public string targetWord = "";
     public WordData[] levelWords;
+    private List<int> availableWords = new List<int>();    // List of words that have not been selected yet
     public Image currentWordImageUI;
     
     [Header("Hint Manager")]
@@ -30,6 +31,9 @@ public class ChasingLettersGameManager : MonoBehaviour
         }
 
         levelWords = Resources.LoadAll<WordData>("WordData");
+
+        refillAvailableWords();
+
 
         if (levelWords != null && levelWords.Length > 0)
         {
@@ -52,10 +56,14 @@ public class ChasingLettersGameManager : MonoBehaviour
 
     public void SelectNewWord()
     {
-        if (levelWords != null && levelWords.Length > 0)
+        if(availableWords.Count == 0) refillAvailableWords();
+        
+        if (levelWords != null && availableWords.Count > 0)
         {
-            int randomIndex = Random.Range(0, levelWords.Length);
-            WordData selectedData = levelWords[randomIndex];
+        int randomIndex = Random.Range(0, availableWords.Count);            // Avoids repetition of words
+        WordData selectedData = levelWords[availableWords[randomIndex]];
+        
+        availableWords.RemoveAt(randomIndex);   // Removes the word selected form the available words list
 
             if (selectedData != null)
             {
@@ -69,6 +77,18 @@ public class ChasingLettersGameManager : MonoBehaviour
                 {
                     hintText.text = selectedData.targetWord;
                 }
+            }
+        }
+    }
+
+    public void refillAvailableWords()
+    {
+        if(levelWords != null && levelWords.Length != 0)
+        {
+            availableWords.Clear();
+            for(int i=0; i<levelWords.Length; i++)
+            {
+                availableWords.Add(i);
             }
         }
     }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections.Generic;
 
 public class LetterBoxSpawner : MonoBehaviour
 {
@@ -9,8 +10,10 @@ public class LetterBoxSpawner : MonoBehaviour
     private int letterRotationFixingConst;
     private float spawnTimer = 1f;
     private float timeCounter = 0f;
-
-    private int correctLetterChance = 70; 
+    private int correctLetterChance = 70;
+    private List<char> currentWordLettersList = new List<char>();
+    private int lastSpawnedTargetWordLetter = 0;
+    private string lastTrackedWord = "";
     private string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZÇÁÉÍÓÚÂÊÔÃÕ";
 
     void Start()
@@ -24,14 +27,16 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             letterRotationFixingConst = 1;
         }
+        fillCurrentWordLettersList();
     }
 
     void Update()
     {
-        if(gameCycleManager.currentGameState == GameStateCL.Playing){
+        if (gameCycleManager.currentGameState == GameStateCL.Playing)
+        {
             timeCounter += Time.deltaTime;
 
-            if (timeCounter >= spawnTimer)
+            if (timeCounter >= spawnTimer && currentWordLettersList != null)
             {
                 GameObject letter = gameManager.GetLetterBoxInstance();
 
@@ -66,10 +71,26 @@ public class LetterBoxSpawner : MonoBehaviour
         string currentWord = gameManager.targetWord; 
 
         // If the roll is within the percentage and the word is valid, pick a letter from the target word
-        if (roll < correctLetterChance && !string.IsNullOrEmpty(currentWord))
+        if (roll < correctLetterChance && !string.IsNullOrEmpty(currentWord) && currentWordLettersList != null)
         {
-            int randomIndex = Random.Range(0, currentWord.Length);
-            return currentWord[randomIndex].ToString().ToUpper();
+            // If the list is empty or the word has changed (new word)
+            if (currentWordLettersList.Count == 0 || currentWord != lastTrackedWord) 
+            {
+                fillCurrentWordLettersList();
+                lastTrackedWord = currentWord;
+                lastSpawnedTargetWordLetter = 0;
+            }
+
+            if (lastSpawnedTargetWordLetter >= currentWordLettersList.Count)
+            {
+                lastSpawnedTargetWordLetter = 0;
+            }
+
+            // Picks the letters sequentially 
+            string letterToSpawn = currentWordLettersList[lastSpawnedTargetWordLetter].ToString().ToUpper();
+            lastSpawnedTargetWordLetter++;
+
+            return letterToSpawn;
         }
         else 
         {
@@ -79,9 +100,9 @@ public class LetterBoxSpawner : MonoBehaviour
         }
     }
 
+    // Observer Pattern ()
     void OnEnable()
     {
-        // 
         if (gameCycleManager != null)
         {
             gameCycleManager.onGameStateChanged += handleStateChange;
@@ -90,7 +111,6 @@ public class LetterBoxSpawner : MonoBehaviour
 
     void OnDisable()
     {
-        // Remove a inscrição por segurança de memória
         if (gameCycleManager != null)
         {
             gameCycleManager.onGameStateChanged -= handleStateChange;
@@ -103,6 +123,18 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             timeCounter = 0f;
             spawnTimer = Random.Range(4.5f, 8);
+        }
+    }
+
+    private void fillCurrentWordLettersList()
+    {
+        if (currentWordLettersList != null && gameManager != null && gameManager.targetWord != null)
+        {
+            currentWordLettersList.Clear();
+            for (int i = 0; i < gameManager.targetWord.Length; i++) 
+            {
+                currentWordLettersList.Add(gameManager.targetWord[i]);
+            }
         }
     }
 }
