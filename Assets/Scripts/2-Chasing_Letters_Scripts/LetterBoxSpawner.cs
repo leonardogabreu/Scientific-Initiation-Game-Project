@@ -12,7 +12,6 @@ public class LetterBoxSpawner : MonoBehaviour
     private float timeCounter = 0f;
     private int correctLetterChance = 70;
     private List<char> currentWordLettersList = new List<char>();
-    private int lastSpawnedTargetWordLetter = 0;
     private string lastTrackedWord = "";
     private string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZÇÁÉÍÓÚÂÊÔÃÕ";
 
@@ -78,19 +77,13 @@ public class LetterBoxSpawner : MonoBehaviour
             {
                 fillCurrentWordLettersList();
                 lastTrackedWord = currentWord;
-                lastSpawnedTargetWordLetter = 0;
             }
 
-            if (lastSpawnedTargetWordLetter >= currentWordLettersList.Count)
-            {
-                lastSpawnedTargetWordLetter = 0;
-            }
+            int randomIndex = Random.Range(0, currentWordLettersList.Count);
+            string letterToSpawn = currentWordLettersList[randomIndex].ToString().ToUpper();
+            currentWordLettersList.RemoveAt(randomIndex);
 
-            // Picks the letters sequentially 
-            string letterToSpawn = currentWordLettersList[lastSpawnedTargetWordLetter].ToString().ToUpper();
-            lastSpawnedTargetWordLetter++;
-
-            return letterToSpawn;
+        return letterToSpawn;
         }
         else 
         {
@@ -100,7 +93,7 @@ public class LetterBoxSpawner : MonoBehaviour
         }
     }
 
-    // Observer Pattern ()
+    // Observer Pattern
     void OnEnable()
     {
         if (gameCycleManager != null)
