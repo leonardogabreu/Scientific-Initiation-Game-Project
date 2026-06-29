@@ -2,8 +2,11 @@ using UnityEngine;
 
 public class TreadmillBehavior : MonoBehaviour
 {
- 
     public float treadmillSpeed = 5f;
+    void Start()
+    {
+        treadmillSpeed = PlayerPrefs.GetFloat("treadmillSpeed", 5f);
+    }
     void OnCollisionStay(Collision collision)
     {
         if (collision.gameObject.CompareTag("LetterBox"))
