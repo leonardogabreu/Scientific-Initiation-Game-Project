@@ -2,14 +2,15 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class TutorialManager : MonoBehaviour
+public class MainMenuController : MonoBehaviour
 {
 
     public SceneManager sceneManager;
     public String nextSceneName;
     [Header("Paineis Principais")]
     public GameObject mainMenuPanel; 
-    public GameObject tutorialContainer; 
+    public GameObject tutorialContainer;
+    public GameObject settingsMenu;
 
     [Header("Paginas do Tutorial")]
     public GameObject[] tutorialPages; 
@@ -19,6 +20,7 @@ public class TutorialManager : MonoBehaviour
     void Start()
     {
         closeTutorial(); 
+        closeSettingsMenu();
     }
 
     public void openTutorial()
@@ -34,7 +36,7 @@ public class TutorialManager : MonoBehaviour
         }
         
         currentIndex = 0;
-        updateUI();
+        updateTutorialUI();
     }
 
     public void closeTutorial()
@@ -57,7 +59,7 @@ public class TutorialManager : MonoBehaviour
             if (currentIndex < tutorialPages.Length - 1)
             {
                 currentIndex++;
-                updateUI();
+                updateTutorialUI();
             }
         }
     }
@@ -67,7 +69,7 @@ public class TutorialManager : MonoBehaviour
         if (currentIndex > 0)
         {
             currentIndex--;
-            updateUI();
+            updateTutorialUI();
         }
     }
 
@@ -78,12 +80,12 @@ public class TutorialManager : MonoBehaviour
             if (pageIndex >= 0 && pageIndex < tutorialPages.Length)
             {
                 currentIndex = pageIndex;
-                updateUI();
+                updateTutorialUI();
             }
         }
     }
 
-    private void updateUI()
+    private void updateTutorialUI()
     {
         if (tutorialPages != null)
         {
@@ -95,6 +97,15 @@ public class TutorialManager : MonoBehaviour
                 }
             }
         }
+    }
+    public void openSettingsMenu()
+    {
+        if(settingsMenu != null) settingsMenu.SetActive(true);   
+    }
+
+    public void closeSettingsMenu()
+    {
+        if(settingsMenu != null) settingsMenu.SetActive(false);   
     }
     
     public void loadNextScene()
