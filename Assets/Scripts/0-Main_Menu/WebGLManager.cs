@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Runtime.InteropServices;
 
 [System.Serializable]
 public class SessionParams
@@ -27,6 +28,16 @@ public class WebGLManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    [DllImport("__Internal")]
+    private static extern void PingReady();
+
+    private void Start()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        PingReady();
+#endif
     }
 
     public void OnReceiveParams(string jsonParams)
