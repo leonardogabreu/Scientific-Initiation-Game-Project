@@ -46,6 +46,14 @@ public class ChasingLettersApiManager : MonoBehaviour
     {
         WebGLManager wgl = WebGLManager.Instance; 
         
+        float timeout = 10f;
+        while (wgl != null && (wgl.AuthToken == null || wgl.CurrentParams == null) && timeout > 0)
+        {
+            Debug.Log($"Aguardando autenticação do Firebase... ({timeout}s restantes)");
+            yield return new WaitForSeconds(0.5f);
+            timeout -= 0.5f;
+        }
+
         if (wgl?.AuthToken != null && wgl?.CurrentParams != null)
         {
             string schoolId = wgl.CurrentParams.schoolId ?? "";
@@ -93,7 +101,7 @@ public class ChasingLettersApiManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Faltam parâmetros de sessão ou token de autenticação no WebGLManager.");
+            Debug.LogWarning("Falha de rede: O Token do Firebase não foi recebido a tempo.");
         }
     }
 
