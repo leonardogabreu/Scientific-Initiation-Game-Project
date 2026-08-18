@@ -1,41 +1,30 @@
 using UnityEngine;
 using System.IO;
-using System.Collections.Generic;
+using System;
 
 public class DataCollectionManager : MonoBehaviour
 {
     private GameSessionData currentSession;
     private WordAttemptData currentWordAttempt;
-    private float sessionTimer;
-    private float wordTimer;
-
-    void Update()
-    {
-        if (currentSession != null)
-        {
-            sessionTimer += Time.deltaTime;
-        }
-
-        if (currentWordAttempt != null)
-        {
-            wordTimer += Time.deltaTime;
-        }
-    }
+    private float sessionStartTime;
+    private float wordStartTime;
 
     // Called when changing game mode to Playing in GameCycleManager
     public void startNewGameSession()
     {
         currentSession = new GameSessionData();
         currentSession.sessionDate = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        sessionTimer = 0f;
+        sessionStartTime = Time.time;
     }
 
     // Called everytime a new word is picked
     public void startNewWordAttempt(string word)
     {
-        currentWordAttempt = new WordAttemptData();
-        currentWordAttempt.targetWord = word;
-        wordTimer = 0f;
+        currentWordAttempt = new WordAttemptData
+        {
+            targetWord = word
+        };
+        wordStartTime = Time.time;
     }
 
     // Called in SubmitZoneManager when player misses
@@ -52,7 +41,7 @@ public class DataCollectionManager : MonoBehaviour
     {
         if (currentWordAttempt != null && currentSession != null)
         {
-            currentWordAttempt.timeSpent = wordTimer;
+            currentWordAttempt.timeSpent = Time.time - wordStartTime;   
             currentSession.wordAttempts.Add(currentWordAttempt);
             
             // Stops the timer from keep counting
@@ -65,7 +54,7 @@ public class DataCollectionManager : MonoBehaviour
     {
         if (currentSession != null)
         {
-            currentSession.totalSessionTime = sessionTimer;
+            currentSession.totalSessionTime = Time.time - sessionStartTime; 
             saveDataToJson();
             
             // Makes the session null to stop the total timer.
@@ -75,20 +64,24 @@ public class DataCollectionManager : MonoBehaviour
 
     private void saveDataToJson()
     {
-        if (currentSession != null)
+        if (currentSession == null) return;
+
+        string jsonString = JsonUtility.ToJson(currentSession, true);
+        
+        if (string.IsNullOrEmpty(jsonString)) return;
+
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        string fileName = $"dados_sessao_{timestamp}.json";
+        string filePath = Path.Combine(Application.persistentDataPath, fileName);
+
+        try
         {
-            string jsonString = JsonUtility.ToJson(currentSession, true);
-            
-            if (jsonString != null)
-            {
-                // Uses date and current time when naming the file so it never overwrites
-                string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string fileName = "/dados_sessao_" + timestamp + ".json";
-                string filePath = Application.persistentDataPath + fileName;
-                
-                File.WriteAllText(filePath, jsonString);
-                Debug.Log("Dados salvos com sucesso no caminho: " + filePath);
-            }
+            File.WriteAllText(filePath, jsonString);
+            Debug.Log($"Dados salvos com sucesso no caminho: {filePath}");
         }
+        catch (Exception e)
+        {
+            Debug.LogError($"Erro ao salvar os dados da sessão: {e.Message}");
+        }  
     }
 }
