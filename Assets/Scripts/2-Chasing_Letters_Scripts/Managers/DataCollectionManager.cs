@@ -10,7 +10,7 @@ public class DataCollectionManager : MonoBehaviour
     private float wordStartTime;
 
     // Called when changing game mode to Playing in GameCycleManager
-    public void startNewGameSession()
+    public void StartNewGameSession()
     {
         currentSession = new GameSessionData();
         currentSession.sessionDate = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -18,7 +18,7 @@ public class DataCollectionManager : MonoBehaviour
     }
 
     // Called everytime a new word is picked
-    public void startNewWordAttempt(string word)
+    public void StartNewWordAttempt(string word)
     {
         currentWordAttempt = new WordAttemptData
         {
@@ -28,7 +28,7 @@ public class DataCollectionManager : MonoBehaviour
     }
 
     // Called in SubmitZoneManager when player misses
-    public void registerMistake()
+    public void RegisterMistake()
     {
         if (currentWordAttempt != null)
         {
@@ -37,7 +37,7 @@ public class DataCollectionManager : MonoBehaviour
     }
 
     // Called in SubmitZoneManager when player writes the word right
-    public void finishWordAttempt()
+    public void FinishWordAttempt()
     {
         if (currentWordAttempt != null && currentSession != null)
         {
@@ -50,19 +50,19 @@ public class DataCollectionManager : MonoBehaviour
     }
 
     // Called in GameCycleManager when game is over
-    public void finishAndSaveSession()
+    public void FinishAndSaveSession()
     {
         if (currentSession != null)
         {
             currentSession.totalSessionTime = Time.time - sessionStartTime; 
-            saveDataToJson();
+            SaveDataToJson();
             
             // Makes the session null to stop the total timer.
             currentSession = null;
         }
     }
 
-    private void saveDataToJson()
+    private void SaveDataToJson()
     {
         if (currentSession == null) return;
 

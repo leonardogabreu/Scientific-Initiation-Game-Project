@@ -67,8 +67,8 @@ public void changeGameState(GameStateCL gameStateCL)
 
             if (dataCollectionManager != null && gameManager != null)
             {
-                dataCollectionManager.startNewGameSession();
-                dataCollectionManager.startNewWordAttempt(gameManager.targetWord);
+                dataCollectionManager.StartNewGameSession();
+                dataCollectionManager.StartNewWordAttempt(gameManager.targetWord);
             }
             break;
 
@@ -86,7 +86,7 @@ public void changeGameState(GameStateCL gameStateCL)
             }
             else
             {
-            dataCollectionManager.finishAndSaveSession();
+            dataCollectionManager.FinishAndSaveSession();
             }
             break;
         }

@@ -1,4 +1,3 @@
-using Unity.Mathematics;
 using UnityEngine;
 
 public class SubmitZoneManager : MonoBehaviour
@@ -15,54 +14,44 @@ public class SubmitZoneManager : MonoBehaviour
     public GameObject deliverRightVFX;
     public GameObject deliverWrongVFX;
 
-    public void evaluateWord()
+    public void EvaluateWord()
     {
-        if(deliverTablesManager != null)
+        if (deliverTablesManager == null) return;
+
+        if (deliverTablesManager.checkSubmit())
         {
-            // Player writes the correct word
-            if (deliverTablesManager.checkSubmit())
-            {
-                if (dataCollectionManager != null)
-                {
-                    dataCollectionManager.finishWordAttempt(); // Saves the correct word
-                }
-                if (deliverTablesManager != null)
-                {
-                    deliverTablesManager.resetAllTables();
-                }
-                if (gameManager != null)
-                {
-                  gameManager.SelectNewWord();  
-                } 
-                if(deliverTablesManager!=null)
-                {
-                    deliverTablesManager.spawnTables();
-                }
-                if (dataCollectionManager != null && gameManager != null)
-                {
-                    dataCollectionManager.startNewWordAttempt(gameManager.targetWord); // Tracks new word
-                }
-                if(gameCycleManager != null)
-                {
-                    gameCycleManager.addScore();
-                }
-
-            audioSource.PlayOneShot(deliverCorrectSFX);
-            Instantiate(deliverRightVFX, transform.position + Vector3.up, Quaternion.identity);            
-            }
-
-            // Player misses the word
-            else
-            {
-            audioSource.PlayOneShot(deliverWrongSFX);
-            Instantiate(deliverWrongVFX, transform.position, quaternion.identity);
-
-                if (dataCollectionManager != null)
-                {
-                    dataCollectionManager.registerMistake();
-                }
-            
-            }
+            HandleCorrectWord();
         }
+        else
+        {
+            HandleWrongWord();
+        }
+    }
+
+    private void HandleCorrectWord()
+    {
+        dataCollectionManager?.FinishWordAttempt(); // Saves the correct word
+
+        deliverTablesManager.resetAllTables();
+        gameManager?.SelectNewWord();
+        deliverTablesManager.spawnTables();
+
+        if (dataCollectionManager != null && gameManager != null)
+        {
+            dataCollectionManager.StartNewWordAttempt(gameManager.targetWord); // Tracks new word
+        }
+
+        gameCycleManager?.addScore();
+
+        audioSource?.PlayOneShot(deliverCorrectSFX);
+        Instantiate(deliverRightVFX, transform.position + Vector3.up, Quaternion.identity);
+    }
+
+    private void HandleWrongWord()
+    {
+        audioSource?.PlayOneShot(deliverWrongSFX);
+        Instantiate(deliverWrongVFX, transform.position, Quaternion.identity);
+
+        dataCollectionManager?.RegisterMistake();
     }
 }
