@@ -67,7 +67,6 @@ public void changeGameState(GameStateCL gameStateCL)
 
             if (dataCollectionManager != null && gameManager != null)
             {
-                dataCollectionManager.StartNewGameSession();
                 dataCollectionManager.StartNewWordAttempt(gameManager.targetWord);
             }
             break;
@@ -77,17 +76,8 @@ public void changeGameState(GameStateCL gameStateCL)
             startPanel.SetActive(false);
             playingPanel.SetActive(false);
             gameOverPanel.SetActive(true);
-
-            navMeshAgent?.ResetPath();
             
-            if (dataCollectionManager == null)
-            {
-                Debug.LogError("[GameCycleManager] DataCollectionManager não configurado — sessão NÃO foi salva!");
-            }
-            else
-            {
-            dataCollectionManager.FinishAndSaveSession();
-            }
+            navMeshAgent?.ResetPath();
             break;
         }
     // Observer
