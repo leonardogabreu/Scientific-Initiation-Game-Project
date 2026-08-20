@@ -4,20 +4,31 @@ using System.Collections.Generic;
 
 public class LetterBoxSpawner : MonoBehaviour
 {
-    private ChasingLettersGameManager gameManager;
+    [Header("Game Managers")] 
+    [SerializeField] private ChasingLettersGameManager gameManager;
     [SerializeField] private GameCycleManager gameCycleManager; 
-    public bool isALeftSpawner;
+
+    [Header("Letter rotation parameters")] 
+    [SerializeField] private bool isALeftSpawner;
     private int letterRotationFixingConst;
-    private float spawnTimer = 1f;
+    private const float LetterHeightOffset = 0.51f;
+    private const float LetterDepthOffset = 0.34f;
+    private const float LetterSideOffset = 0.1f;
+
+    [Header("Time parameters")] 
+    [SerializeField] private float spawnTimer = 1f;
+    [SerializeField] private float minSpawnTime = 4.5f;
+    [SerializeField] private float maxSpawnTime = 8f;
     private float timeCounter = 0f;
-    private int correctLetterChance = 70;
+
+    [Header("Random Letter parameters")] 
+    [SerializeField] private int correctLetterChance = 70;
     private List<char> currentWordLettersList = new List<char>();
     private string lastTrackedWord = "";
     private string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZÇÁÉÍÓÚÂÊÔÃÕ";
 
     void Start()
     {
-        gameManager = GameObject.Find("GameManager").GetComponent<ChasingLettersGameManager>();
         if (isALeftSpawner)
         {
             letterRotationFixingConst = -1;
@@ -26,11 +37,13 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             letterRotationFixingConst = 1;
         }
-        fillCurrentWordLettersList();
+        FillCurrentWordLettersList();
     }
 
     void Update()
     {
+        if (gameCycleManager == null) return;
+
         if (gameCycleManager.currentGameState == GameStateCL.Playing)
         {
             timeCounter += Time.deltaTime;
@@ -39,27 +52,25 @@ public class LetterBoxSpawner : MonoBehaviour
             {
                 GameObject letter = gameManager.GetLetterBoxInstance();
 
-                if (letter != null)   
-                {
+                if (letter != null){   
                     letter.transform.localPosition = transform.position;
                     letter.transform.localRotation = Quaternion.Euler(0, -letterRotationFixingConst*90, 0);
                     
                     TMP_Text letterText = letter.GetComponentInChildren<TMP_Text>();
+
                     if (letterText != null)
                     {
-                        letterText.text = GetWeightedRandomLetter();
-                        
+                        letterText.text = GetWeightedRandomLetter();   
                         // A lot of bug correction from the letter position and rotation, with very specific numbers
                         letterText.transform.localRotation = Quaternion.Euler(90, letterRotationFixingConst * 90, 0);
-                        letterText.transform.localPosition = new Vector3(-letterRotationFixingConst * 0.1f, 0.51f, -letterRotationFixingConst * 0.34f);
+                        letterText.transform.localPosition = new Vector3(-letterRotationFixingConst * LetterSideOffset, LetterHeightOffset, -letterRotationFixingConst * LetterDepthOffset);
+
+                        letter.SetActive(true);
                     }
-
-                    letter.SetActive(true);
                 }
-
-                // Reset timer and randomize the next spawn delay
+                // Resets timer and randomizes the next spawn delay
                 timeCounter = 0f;
-                spawnTimer = Random.Range(4.5f, 8);
+                spawnTimer = Random.Range(minSpawnTime, maxSpawnTime);
             }
         }
     }
@@ -75,7 +86,7 @@ public class LetterBoxSpawner : MonoBehaviour
             // If the list is empty or the word has changed (new word)
             if (currentWordLettersList.Count == 0 || currentWord != lastTrackedWord) 
             {
-                fillCurrentWordLettersList();
+                FillCurrentWordLettersList();
                 lastTrackedWord = currentWord;
             }
 
@@ -98,7 +109,7 @@ public class LetterBoxSpawner : MonoBehaviour
     {
         if (gameCycleManager != null)
         {
-            gameCycleManager.onGameStateChanged += handleStateChange;
+            gameCycleManager.onGameStateChanged += HandleStateChange;
         }
     }
 
@@ -106,20 +117,20 @@ public class LetterBoxSpawner : MonoBehaviour
     {
         if (gameCycleManager != null)
         {
-            gameCycleManager.onGameStateChanged -= handleStateChange;
+            gameCycleManager.onGameStateChanged -= HandleStateChange;
         }
     }
 
-    private void handleStateChange(GameStateCL newState)
+    private void HandleStateChange(GameStateCL newState)
     {
         if (newState == GameStateCL.Playing)
         {
             timeCounter = 0f;
-            spawnTimer = Random.Range(4.5f, 8);
+            spawnTimer = Random.Range(minSpawnTime, maxSpawnTime);
         }
     }
 
-    private void fillCurrentWordLettersList()
+    private void FillCurrentWordLettersList()
     {
         if (currentWordLettersList != null && gameManager != null && gameManager.targetWord != null)
         {
