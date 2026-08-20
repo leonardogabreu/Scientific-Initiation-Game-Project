@@ -30,71 +30,59 @@ public class GameCycleManager : MonoBehaviour
         changeGameState(GameStateCL.Start);
     }
 
-    public void changeGameState(GameStateCL gameStateCL)
+public void changeGameState(GameStateCL gameStateCL)
+{
+    if (startPanel == null || playingPanel == null || gameOverPanel == null)
     {
-        if(startPanel != null && playingPanel != null && gameOverPanel != null){
-            if(gameStateCL == GameStateCL.Start)
-            {
-                currentGameState = GameStateCL.Start;
-                startPanel.SetActive(true);
-                playingPanel.SetActive(false);
-                gameOverPanel.SetActive(false);
-
-                correctWords = 0;
-            }
-            else if(gameStateCL == GameStateCL.Playing  && starsArray != null && starsOutlineArray != null)
-            {
-                currentGameState = GameStateCL.Playing;
-                startPanel.SetActive(false);
-                playingPanel.SetActive(true);
-                gameOverPanel.SetActive(false);
-
-                foreach(GameObject star in starsArray)
-                {
-                    star.SetActive(false);
-                }
-                foreach(GameObject starOutline in starsOutlineArray)
-                {
-                    starOutline.SetActive(true);
-                }
-
-                if (gameManager.letterBoxesInstances != null)
-                {
-                    foreach (GameObject letterBox in gameManager.letterBoxesInstances)
-                    {
-                        if (letterBox != null) 
-                        {
-                            letterBox.SetActive(false);
-                        }
-                    }
-                }
-
-                // Starts new game session
-                if (dataCollectionManager != null && gameManager != null)
-                {
-                    dataCollectionManager.startNewGameSession();
-                    dataCollectionManager.startNewWordAttempt(gameManager.targetWord); // Inicia a primeira palavra
-                }
-            }
-            else
-            {
-                currentGameState = GameStateCL.Over;
-                
-                startPanel.SetActive(false);
-                playingPanel.SetActive(false);
-                gameOverPanel.SetActive(true); 
-
-                navMeshAgent.ResetPath();
-
-                dataCollectionManager.finishAndSaveSession();
-            }
-
-            if (onGameStateChanged != null)
-            {   
-                onGameStateChanged(gameStateCL);
-            }
-        }
+        Debug.LogError("[GameCycleManager] Painéis de UI não configurados no Inspector.");
+        return;
     }
+
+    switch (gameStateCL)
+    {
+        case GameStateCL.Start:
+            currentGameState = GameStateCL.Start;
+            startPanel.SetActive(true);
+            playingPanel.SetActive(false);
+            gameOverPanel.SetActive(false);
+            correctWords = 0;
+            break;
+
+        case GameStateCL.Playing:
+            if (starsArray == null || starsOutlineArray == null)
+            {
+                Debug.LogError("[GameCycleManager] Arrays de estrelas não configurados no Inspector.");
+                return;
+            }
+
+            currentGameState = GameStateCL.Playing;
+            startPanel.SetActive(false);
+            playingPanel.SetActive(true);
+            gameOverPanel.SetActive(false);
+
+            foreach (GameObject star in starsArray) star.SetActive(false);
+            foreach (GameObject starOutline in starsOutlineArray) starOutline.SetActive(true);
+
+            gameManager?.letterBoxesInstances?.ForEach(box => box?.SetActive(false));
+
+            if (dataCollectionManager != null && gameManager != null)
+            {
+                dataCollectionManager.StartNewWordAttempt(gameManager.targetWord);
+            }
+            break;
+
+        case GameStateCL.Over:
+            currentGameState = GameStateCL.Over;
+            startPanel.SetActive(false);
+            playingPanel.SetActive(false);
+            gameOverPanel.SetActive(true);
+            
+            navMeshAgent?.ResetPath();
+            break;
+        }
+    // Observer
+    onGameStateChanged?.Invoke(gameStateCL);
+}
     
     public void addScore()
     {

@@ -1,94 +1,110 @@
 using UnityEngine;
-using System.IO;
-using System.Collections.Generic;
+using UnityEngine.Networking;
+using System.Collections;
+using System.Text;
+using System.Globalization;
 
+/// <summary>
+/// Envia eventos de tentativa de palavra (Hit/Miss) em tempo real para a API,
+/// reaproveitando o endpoint /api/events/game.
+/// ATENÇÃO: o formato do payload (document_id/question/answer) foi inferido
+/// a partir do QuestionScript.cs do Arthur — validar se
+/// esses campos fazem sentido pro contexto do Chasing Letters.
+/// </summary>
 public class DataCollectionManager : MonoBehaviour
 {
-    private GameSessionData currentSession;
+    [SerializeField] private string backendUrl = "https://adapt2learn-895112363610.us-central1.run.app/api/events/game";
+
     private WordAttemptData currentWordAttempt;
-    private float sessionTimer;
-    private float wordTimer;
+    private float wordStartTime;
 
-    void Update()
+    public void StartNewWordAttempt(string word)
     {
-        if (currentSession != null)
+        currentWordAttempt = new WordAttemptData { targetWord = word };
+        wordStartTime = Time.time;
+    }
+
+    public void RegisterMistake()
+    {
+        if (currentWordAttempt == null)
         {
-            sessionTimer += Time.deltaTime;
+            Debug.LogWarning("[DataCollectionManager] RegisterMistake chamado sem tentativa ativa.");
+            return;
         }
 
-        if (currentWordAttempt != null)
+        currentWordAttempt.mistakesCount++;
+        StartCoroutine(SendGameEvent("Miss", currentWordAttempt.targetWord, Time.time - wordStartTime));
+    }
+
+    public void FinishWordAttempt()
+    {
+        if (currentWordAttempt == null)
         {
-            wordTimer += Time.deltaTime;
+            Debug.LogWarning("[DataCollectionManager] FinishWordAttempt chamado sem tentativa ativa.");
+            return;
         }
+
+        currentWordAttempt.timeSpent = Time.time - wordStartTime;
+        StartCoroutine(SendGameEvent("Hit", currentWordAttempt.targetWord, currentWordAttempt.timeSpent));
+
+        currentWordAttempt = null;
     }
 
-    // Called when changing game mode to Playing in GameCycleManager
-    public void startNewGameSession()
+    private IEnumerator SendGameEvent(string eventType, string word, float elapsedTime)
     {
-        currentSession = new GameSessionData();
-        currentSession.sessionDate = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        sessionTimer = 0f;
-    }
-
-    // Called everytime a new word is picked
-    public void startNewWordAttempt(string word)
-    {
-        currentWordAttempt = new WordAttemptData();
-        currentWordAttempt.targetWord = word;
-        wordTimer = 0f;
-    }
-
-    // Called in SubmitZoneManager when player misses
-    public void registerMistake()
-    {
-        if (currentWordAttempt != null)
+        WebGLManager wgl = WebGLManager.Instance;
+        if (wgl == null || string.IsNullOrEmpty(wgl.AuthToken))
         {
-            currentWordAttempt.mistakesCount++;
+            Debug.LogWarning($"[DataCollectionManager] Sem AuthToken — evento '{eventType}' não enviado.");
+            yield break;
         }
-    }
 
-    // Called in SubmitZoneManager when player writes the word right
-    public void finishWordAttempt()
-    {
-        if (currentWordAttempt != null && currentSession != null)
-        {
-            currentWordAttempt.timeSpent = wordTimer;
-            currentSession.wordAttempts.Add(currentWordAttempt);
-            
-            // Stops the timer from keep counting
-            currentWordAttempt = null;
-        }
-    }
+        string elapsedStr = elapsedTime.ToString("F3", CultureInfo.InvariantCulture);
 
-    // Called in GameCycleManager when game is over
-    public void finishAndSaveSession()
-    {
-        if (currentSession != null)
+        GameEventRequest eventData = new GameEventRequest
         {
-            currentSession.totalSessionTime = sessionTimer;
-            saveDataToJson();
-            
-            // Makes the session null to stop the total timer.
-            currentSession = null;
-        }
-    }
-
-    private void saveDataToJson()
-    {
-        if (currentSession != null)
-        {
-            string jsonString = JsonUtility.ToJson(currentSession, true);
-            
-            if (jsonString != null)
+            event_type = eventType,
+            game_id = wgl.CurrentParams?.gameId,
+            payload = new GameEventPayload
             {
-                // Uses date and current time when naming the file so it never overwrites
-                string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string fileName = "/dados_sessao_" + timestamp + ".json";
-                string filePath = Application.persistentDataPath + fileName;
-                
-                File.WriteAllText(filePath, jsonString);
-                Debug.Log("Dados salvos com sucesso no caminho: " + filePath);
+                time = elapsedStr,
+                document_id = "chasing_letters",
+                question = word,
+                answer = word
             }
+        };
+
+        string json = JsonUtility.ToJson(eventData);
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+
+        using UnityWebRequest req = new UnityWebRequest(backendUrl, "POST");
+        req.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        req.downloadHandler = new DownloadHandlerBuffer();
+        req.SetRequestHeader("Content-Type", "application/json");
+        req.SetRequestHeader("Authorization", "Bearer " + wgl.AuthToken);
+
+        yield return req.SendWebRequest();
+
+        if (req.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError($"[DataCollectionManager] Erro ao enviar evento '{eventType}': {req.error}");
         }
     }
+}
+
+[System.Serializable]
+public class GameEventRequest
+{
+    public string event_type;
+    public string game_id;
+    public GameEventPayload payload;
+}
+
+[System.Serializable]
+public class GameEventPayload
+{
+    public string time;
+    public string document_id;
+    public string question;
+    public string answer;
 }

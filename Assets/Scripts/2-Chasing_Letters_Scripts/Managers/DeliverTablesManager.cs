@@ -1,169 +1,119 @@
 using UnityEngine;
+using TMPro;
 
 public class DeliverTablesManager : MonoBehaviour
 {
     public GameObject evenTablesParent;
     public GameObject oddTablesParent;
-    
     private GameObject[] evenTablesList;
     private GameObject[] oddTablesList;
-    
+
     [SerializeField] private ChasingLettersGameManager gameManager;
 
     void Start()
     {
         FillTablesLists();
-        resetAllTables();
-        spawnTables();
+        ResetAllTables();
+        SpawnTables();
     }
 
     private void FillTablesLists()
     {
-        if (evenTablesParent != null)
+        evenTablesList = BuildTablesList(evenTablesParent);
+        oddTablesList = BuildTablesList(oddTablesParent);
+    }
+
+    private GameObject[] BuildTablesList(GameObject parent)
+    {
+        if (parent == null) return null;
+
+        int count = parent.transform.childCount;
+        GameObject[] tables = new GameObject[count];
+
+        for (int i = 0; i < count; i++)
         {
-            int evenCount = evenTablesParent.transform.childCount;
-            evenTablesList = new GameObject[evenCount]; 
-            
-            for (int i = 0; i < evenCount; i++)
-            {
-                evenTablesList[i] = evenTablesParent.transform.GetChild(i).gameObject;
-                evenTablesList[i].SetActive(false);
-            }
+            tables[i] = parent.transform.GetChild(i).gameObject;
+            tables[i].SetActive(false);
         }
 
-        if (oddTablesParent != null)
+        return tables;
+    }
+
+    // Decide qual lista (par/ímpar) usar com base no tamanho da palavra atual.
+    private GameObject[] GetTablesListForWord()
+    {
+        if (gameManager == null || gameManager.targetWord == null) return null;
+
+        bool isEven = gameManager.targetWord.Length % 2 == 0;
+        return isEven ? evenTablesList : oddTablesList;
+    }
+
+    public void SpawnTables()
+    {
+        GameObject[] tables = GetTablesListForWord();
+        if (tables == null) return;
+
+        int wordLength = gameManager.targetWord.Length;
+
+        if (wordLength > tables.Length)
         {
-            int oddCount = oddTablesParent.transform.childCount;
-            oddTablesList = new GameObject[oddCount]; 
-            
-            for (int i = 0; i < oddCount; i++)
-            {
-                oddTablesList[i] = oddTablesParent.transform.GetChild(i).gameObject;
-                oddTablesList[i].SetActive(false);
-            }
+            Debug.LogError($"[DeliverTablesManager] Palavra '{gameManager.targetWord}' ({wordLength} letras) excede o número de mesas disponíveis ({tables.Length}).");
+            return;
+        }
+
+        // Centralization
+        int startIndex = (tables.Length - wordLength) / 2;
+
+        for (int i = 0; i < wordLength; i++)
+        {
+            tables[startIndex + i].SetActive(true);
         }
     }
 
-    public void spawnTables()
+    public bool CheckSubmit()
     {
-        if (gameManager != null && gameManager.targetWord != null)
-        {
-            int wordLength = gameManager.targetWord.Length;
+        GameObject[] tables = GetTablesListForWord();
+        if (tables == null) return false;
 
-            if (wordLength % 2 == 0)
+        int wordLength = gameManager.targetWord.Length;
+        int startIndex = (tables.Length - wordLength) / 2;
+        int limit = startIndex + wordLength;
+
+        string builtWord = "";
+
+        for (int i = startIndex; i < limit; i++)
+        {
+            TMP_Text textComponent = tables[i].transform.GetChild(0).GetComponentInChildren<TMP_Text>();
+
+            if (textComponent != null)
             {
-                if (evenTablesList != null)
-                {
-                    // Matemática da centralização: (TamanhoTotal - TamanhoPalavra) / 2
-                    int startIndex = (evenTablesList.Length - wordLength) / 2;
-                    
-                    for (int i = 0; i < wordLength; i++)
-                    {
-                        evenTablesList[startIndex + i].SetActive(true);
-                    }
-                }
-            }
-            else
-            {
-                if (oddTablesList != null)
-                {
-                    // Matemática da centralização: (TamanhoTotal - TamanhoPalavra) / 2
-                    int startIndex = (oddTablesList.Length - wordLength) / 2;
-                    
-                    for (int i = 0; i < wordLength; i++)
-                    {
-                        oddTablesList[startIndex + i].SetActive(true);
-                    }
-                }
+                builtWord += textComponent.text;
             }
         }
+
+        return gameManager.targetWord == builtWord.ToUpper();
     }
 
-    public bool checkSubmit()
+    public void ResetAllTables()
     {
-        if (evenTablesList != null && oddTablesList != null)
-        {
-            int wordLength = gameManager.targetWord.Length;
-            string builtWord = "";
-            if(wordLength % 2 == 0)
-            {
-                int index = (evenTablesList.Length - wordLength) / 2; // Gets the start index
-                int limit = index + wordLength;
-                TMPro.TMP_Text textComponent;
-                
-                for(; index < limit; index++)
-                {
-                    textComponent = evenTablesList[index].transform.GetChild(0).GetComponentInChildren<TMPro.TMP_Text>();
-
-                    if (textComponent != null)
-                    {
-                        builtWord += textComponent.text;
-                    }
-                }
-                if(gameManager.targetWord == builtWord.ToUpper()) return true;
-                else return false;
-            }
-            else
-            {
-                int index = (oddTablesList.Length - wordLength) / 2; // Gets the start index
-                int limit = index + wordLength;
-                TMPro.TMP_Text textComponent;
-                
-                for(; index < limit; index++)
-                {
-                    textComponent = oddTablesList[index].transform.GetChild(0).GetComponentInChildren<TMPro.TMP_Text>();
-
-                    if (textComponent != null)
-                    {
-                        builtWord += textComponent.text;
-                    }
-                }
-
-                if(gameManager.targetWord == builtWord.ToUpper()) return true; // Podemos usar a palavra que a criança tentou colocar como um dado pra IA do Mateus
-                else return false;
-            }
-        }
-        return false;
+        ResetTablesList(evenTablesList);
+        ResetTablesList(oddTablesList);
     }
 
-    public void resetAllTables()
+    private void ResetTablesList(GameObject[] tables)
     {
-    if (evenTablesList != null)
-    {
-        for (int i = 0; i < evenTablesList.Length; i++)
+        if (tables == null) return;
+
+        foreach (GameObject table in tables)
         {
-            if (evenTablesList[i] != null)
+            if (table == null) continue;
+
+            if (table.transform.childCount > 0)
             {
-                if (evenTablesList[i].transform.childCount > 0)
-                {
-                    GameObject letterObj = evenTablesList[i].transform.GetChild(0).gameObject;
-                    if (letterObj != null)
-                    {
-                        letterObj.SetActive(false);
-                    }
-                }
-                evenTablesList[i].SetActive(false);
+                table.transform.GetChild(0).gameObject.SetActive(false);
             }
+
+            table.SetActive(false);
         }
     }
-
-    if (oddTablesList != null)
-    {
-        for (int i = 0; i < oddTablesList.Length; i++)
-        {
-            if (oddTablesList[i] != null)
-            {
-                if (oddTablesList[i].transform.childCount > 0)
-                {
-                    GameObject letterObj = oddTablesList[i].transform.GetChild(0).gameObject;
-                    if (letterObj != null)
-                    {
-                        letterObj.SetActive(false);
-                    }
-                }
-                oddTablesList[i].SetActive(false);
-            }
-        }
-    }
-}
 }

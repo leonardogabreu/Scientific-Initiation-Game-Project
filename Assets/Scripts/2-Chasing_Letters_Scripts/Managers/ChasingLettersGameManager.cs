@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -40,18 +41,10 @@ public class ChasingLettersGameManager : MonoBehaviour
             SelectNewWord();
         }
     }
-    
+    // Searches the pool for the first available (inactive) letter box. Else returns null
     public GameObject GetLetterBoxInstance()
     {
-        // Search the pool for the first available (inactive) letter box
-        for (int i = 0; i < letterBoxesInstances.Count; i++)
-        {
-            if (letterBoxesInstances[i] != null && !letterBoxesInstances[i].activeInHierarchy)
-            {
-                return letterBoxesInstances[i];
-            }
-        }
-        return null;
+        return letterBoxesInstances.FirstOrDefault(box => box != null && !box.activeInHierarchy);
     }
 
     public void SelectNewWord()
