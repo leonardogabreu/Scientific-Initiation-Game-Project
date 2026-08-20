@@ -1,66 +1,47 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
 public class HintManager : MonoBehaviour
 {
     [Header("Hint Manager")]
-
     [SerializeField] private TMP_Text hintText;
-    public static float hintCooldown = 20.0f;
-    public float hintTimer = hintCooldown;
-    public bool canGiveHint = true;
-    public bool isShowingHint = false;
-    public static float hintShowTime = 10.0f;
-    public float hintShownTime = 0.0f;
-    public GameCycleManager gameCycleManager;
+    [SerializeField] private float hintCooldown = 20.0f;
+    [SerializeField] private float hintShowTime = 10.0f;
+    [SerializeField] private GameCycleManager gameCycleManager;
 
-    void Update()
-    {
-        if (gameCycleManager != null)
-        {
-            if (gameCycleManager.currentGameState == GameStateCL.Playing)
-            {
-                if (!canGiveHint) // Hint is on cooldown
-                {
-                    hintTimer -= Time.deltaTime;
-                    if (hintTimer <= 0) // if the cooldown is over, can give hint and resets the cooldown
-                    {
-                        canGiveHint = true;
-                        hintTimer = hintCooldown;
-                    }
-                }
-
-                if (isShowingHint) // Hint is given
-                {
-                    hintShownTime += Time.deltaTime;
-                    if(hintShownTime >= hintShowTime) // if hint show time is over, hides the hint, and resets boolean and timer values
-                    {
-                        hintText.gameObject.SetActive(false);
-                        isShowingHint = false;
-                        canGiveHint = true;
-                        hintShownTime = 0.0f;
-                    }
-                }
-            }
-        }
-    }
+    private bool canGiveHint = true;
 
     public void ShowHint()
     {
-        if(hintText != null && canGiveHint)
+        if (hintText == null || !canGiveHint) return;
+
+        StartCoroutine(HintRoutine());
+    }
+
+    private IEnumerator HintRoutine()
+    {
+        canGiveHint = false;
+        hintText.gameObject.SetActive(true);
+
+        yield return new WaitForSeconds(hintShowTime);
+
+        hintText.gameObject.SetActive(false);
+
+        float remainingCooldown = hintCooldown - hintShowTime;
+        if (remainingCooldown > 0)
         {
-            hintText.gameObject.SetActive(true);
-            isShowingHint = true;
-            hintShownTime = 0;
-            canGiveHint = false;
+            yield return new WaitForSeconds(remainingCooldown);
         }
+
+        canGiveHint = true;
     }
 
     void OnEnable()
     {
         if (gameCycleManager != null)
         {
-            gameCycleManager.onGameStateChanged += handleStateChange;
+            gameCycleManager.onGameStateChanged += HandleStateChange;
         }
     }
 
@@ -68,31 +49,19 @@ public class HintManager : MonoBehaviour
     {
         if (gameCycleManager != null)
         {
-            gameCycleManager.onGameStateChanged -= handleStateChange;
+            gameCycleManager.onGameStateChanged -= HandleStateChange;
         }
     }
 
-    private void handleStateChange(GameStateCL newState)
+    private void HandleStateChange(GameStateCL newState)
     {
-        if (newState == GameStateCL.Playing)
-        {
-            // Resets everything for the new round
-            canGiveHint = true;
-            isShowingHint = false;
-            hintTimer = hintCooldown;
-            hintShownTime = 0.0f;
+        // Interrupts any ongoing hint and resets the state, for any new state.
+        StopAllCoroutines();
+        canGiveHint = true;
 
-            if (hintText != null)
-            {
-                hintText.gameObject.SetActive(false);
-            }
-        }
-        else if (newState == GameStateCL.Start || newState == GameStateCL.Over)
+        if (hintText != null)
         {
-            if (hintText != null)
-            {
-                hintText.gameObject.SetActive(false);
-            }
+            hintText.gameObject.SetActive(false);
         }
     }
 }
