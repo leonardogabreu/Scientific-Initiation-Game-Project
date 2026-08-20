@@ -173,23 +173,23 @@ public class PlayerControllerCL : MonoBehaviour
     }
 
     public void DropLetterBox(GameObject targetObj)
-{
-    if (targetObj.transform.childCount == 0) return;
-
-    GameObject interactionLetter = targetObj.transform.GetChild(0).gameObject;
-    if (interactionLetter == null) return;
-
-    TMP_Text interactionLetterText = interactionLetter.GetComponentInChildren<TMP_Text>();
-    if (interactionLetterText != null)
     {
-        interactionLetterText.text = carriedLetterText.text;
+        if (targetObj.transform.childCount == 0) return;
+
+        GameObject interactionLetter = targetObj.transform.GetChild(0).gameObject;
+        if (interactionLetter == null) return;
+
+        TMP_Text interactionLetterText = interactionLetter.GetComponentInChildren<TMP_Text>();
+        if (interactionLetterText != null)
+        {
+            interactionLetterText.text = carriedLetterText.text;
+        }
+
+        interactionLetter.SetActive(true);
+        carriedLetter.SetActive(false);
+        isCarrying = false;
+
+        if (animator == null) return;
+        animator.SetBool("IsCarrying", false);
     }
-
-    interactionLetter.SetActive(true);
-    carriedLetter.SetActive(false);
-    isCarrying = false;
-
-    if (animator == null) return;
-    animator.SetBool("IsCarrying", false);
 }
-} 
