@@ -4005,6 +4005,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3238e77cc68f1e05ad36599421513a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LetterBoxSpawner
+  gameManager: {fileID: 1205691429}
   gameCycleManager: {fileID: 275050932}
   isALeftSpawner: 1
 --- !u!1001 &780241407
@@ -4089,6 +4090,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3238e77cc68f1e05ad36599421513a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LetterBoxSpawner
+  gameManager: {fileID: 1205691429}
   gameCycleManager: {fileID: 275050932}
   isALeftSpawner: 0
 --- !u!1 &798933147
@@ -5282,6 +5284,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90b63933268e5a09eb10c2ab0cfc6968, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DataCollectionManager
+  backendUrl: https://adapt2learn-895112363610.us-central1.run.app/api/events/game
 --- !u!1001 &1027215331
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10179,6 +10182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3238e77cc68f1e05ad36599421513a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LetterBoxSpawner
+  gameManager: {fileID: 1205691429}
   gameCycleManager: {fileID: 275050932}
   isALeftSpawner: 0
 --- !u!1001 &1972371482
@@ -10705,10 +10709,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintManager
   hintText: {fileID: 406966448}
-  hintTimer: 20
-  canGiveHint: 1
-  isShowingHint: 0
-  hintShownTime: 0
+  hintCooldown: 20
+  hintShowTime: 10
   gameCycleManager: {fileID: 275050932}
 --- !u!4 &2060974488
 Transform:
@@ -11540,6 +11542,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3238e77cc68f1e05ad36599421513a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LetterBoxSpawner
+  gameManager: {fileID: 1205691429}
   gameCycleManager: {fileID: 275050932}
   isALeftSpawner: 1
 --- !u!1660057539 &9223372036854775807

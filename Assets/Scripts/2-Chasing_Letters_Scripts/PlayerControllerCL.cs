@@ -37,20 +37,31 @@ public class PlayerControllerCL : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && gameCycleManager != null && gameCycleManager.currentGameState == GameStateCL.Playing)
         {
-            interactWithClosest();
+            InteractWithClosest();
         }
     }
 
-    private void interactWithClosest()
+    private void InteractWithClosest()
     {
         // Scans around the player
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, interactionRadius, interactionLayer);
         
+        InteractableCL closestInteractable = GetClosestInteractible(hitColliders);
+
+        // if found an interactible object, interacts with it
+        if (closestInteractable != null)
+        {
+            ExecuteInteraction(closestInteractable);
+        }
+    }
+
+    private InteractableCL GetClosestInteractible(Collider[] colliders)
+    {
         InteractableCL closestInteractable = null;
         float closestDistance = Mathf.Infinity;
 
         // Searches nearest neighbor
-        foreach (Collider hitCollider in hitColliders)
+        foreach (Collider hitCollider in colliders)
         {
             InteractableCL interactable = hitCollider.GetComponent<InteractableCL>();
             if (interactable != null)
@@ -63,15 +74,10 @@ public class PlayerControllerCL : MonoBehaviour
                 }
             }
         }
-
-        // if found an interactible object, interacts with it
-        if (closestInteractable != null)
-        {
-            executeInteraction(closestInteractable);
-        }
+        return closestInteractable;
     }
 
-    private void executeInteraction(InteractableCL interactable)
+    private void ExecuteInteraction(InteractableCL interactable)
     {
         GameObject interactionObject = interactable.gameObject;
 
@@ -80,7 +86,7 @@ public class PlayerControllerCL : MonoBehaviour
             case InteractableType.LetterBox:
                 if (!isCarrying)
                 {
-                    carryLetterBox(interactionObject, true);
+                    CarryLetterBox(interactionObject, true);
                 }
                 break;
 
@@ -92,11 +98,11 @@ public class PlayerControllerCL : MonoBehaviour
 
                     if (isCarrying && !tableLetter.activeInHierarchy)
                     {
-                        dropLetterBox(interactionObject);
+                        DropLetterBox(interactionObject);
                     }
                     else if (!isCarrying && tableLetter.activeInHierarchy)
                     {
-                        carryLetterBox(interactionObject, false);
+                        CarryLetterBox(interactionObject, false);
                     }
                 }
                 break;
@@ -127,69 +133,63 @@ public class PlayerControllerCL : MonoBehaviour
             case InteractableType.Submit:
                 if (submitZoneManager != null)
                 {
-                    submitZoneManager.evaluateWord();
+                    submitZoneManager.EvaluateWord();
                 }
                 break;
         }
     }
 
-    public void carryLetterBox(GameObject targetObj, bool isFromSpawner)
+    public void CarryLetterBox(GameObject targetObj, bool isFromSpawner)
     {
-        if (carriedLetter != null && carriedLetterText != null)
+        if(carriedLetter == null || carriedLetterText == null) return;
+
+        GameObject targetBox = null;
+
+        if (isFromSpawner)
         {
-            GameObject targetBox = null;
+            targetBox = targetObj;
+        }
+        else if (targetObj.transform.childCount > 0)
+        {
+            targetBox = targetObj.transform.GetChild(0).gameObject;
+        }
 
-            if (isFromSpawner)
-            {
-                targetBox = targetObj;
-            }
-            else if (targetObj.transform.childCount > 0)
-            {
-                targetBox = targetObj.transform.GetChild(0).gameObject;
-            }
+        if (targetBox == null) return;
 
-            if (targetBox != null)
-            {
-                TMP_Text targetBoxText = targetBox.GetComponentInChildren<TMP_Text>();
-                if (targetBoxText != null)
-                {
-                    carriedLetterText.text = targetBoxText.text;
-                }
+        TMP_Text targetBoxText = targetBox.GetComponentInChildren<TMP_Text>();
+        if (targetBoxText != null)
+        {
+            carriedLetterText.text = targetBoxText.text;
+        }
 
-                carriedLetter.SetActive(true);
-                targetBox.SetActive(false);
-                isCarrying = true;
+        carriedLetter.SetActive(true);
+        targetBox.SetActive(false);
+        isCarrying = true;
 
-                if (animator != null)
-                {
-                    animator.SetBool("IsCarrying", true);
-                }
-            }
+        if (animator != null)
+        {
+            animator.SetBool("IsCarrying", true);
         }
     }
 
-    public void dropLetterBox(GameObject targetObj)
+    public void DropLetterBox(GameObject targetObj)
     {
-        if (targetObj.transform.childCount > 0)
+        if (targetObj.transform.childCount == 0) return;
+
+        GameObject interactionLetter = targetObj.transform.GetChild(0).gameObject;
+        if (interactionLetter == null) return;
+
+        TMP_Text interactionLetterText = interactionLetter.GetComponentInChildren<TMP_Text>();
+        if (interactionLetterText != null)
         {
-            GameObject interactionLetter = targetObj.transform.GetChild(0).gameObject;
-            if (interactionLetter != null)
-            {
-                TMP_Text interactionLetterText = interactionLetter.GetComponentInChildren<TMP_Text>();
-                if (interactionLetterText != null)
-                {
-                    interactionLetterText.text = carriedLetterText.text;
-                }
-
-                interactionLetter.SetActive(true);
-                carriedLetter.SetActive(false);
-                isCarrying = false;
-
-                if (animator != null)
-                {
-                    animator.SetBool("IsCarrying", false);
-                }
-            }
+            interactionLetterText.text = carriedLetterText.text;
         }
+
+        interactionLetter.SetActive(true);
+        carriedLetter.SetActive(false);
+        isCarrying = false;
+
+        if (animator == null) return;
+        animator.SetBool("IsCarrying", false);
     }
-} 
+}

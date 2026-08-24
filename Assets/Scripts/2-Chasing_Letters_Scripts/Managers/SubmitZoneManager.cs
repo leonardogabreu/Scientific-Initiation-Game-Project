@@ -18,7 +18,7 @@ public class SubmitZoneManager : MonoBehaviour
     {
         if (deliverTablesManager == null) return;
 
-        if (deliverTablesManager.checkSubmit())
+        if (deliverTablesManager.CheckSubmit())
         {
             HandleCorrectWord();
         }
@@ -32,9 +32,9 @@ public class SubmitZoneManager : MonoBehaviour
     {
         dataCollectionManager?.FinishWordAttempt(); // Saves the correct word
 
-        deliverTablesManager.resetAllTables();
+        deliverTablesManager.ResetAllTables();
         gameManager?.SelectNewWord();
-        deliverTablesManager.spawnTables();
+        deliverTablesManager.SpawnTables();
 
         if (dataCollectionManager != null && gameManager != null)
         {
