@@ -4,14 +4,16 @@ using UnityEngine.AI;
 public class ChasingLettersGridClicker : MonoBehaviour
 {
     public float gridSize = 1f;
-    public Transform cursorVisual; 
-    public NavMeshAgent robotAgent; 
+    public Transform cursorVisual;
+    public NavMeshAgent robotAgent;
     public GameCycleManager gameCycleManager;
     public LayerMask floorMask;
 
     void Update()
     {
-       if (Input.GetMouseButtonDown(0) && gameCycleManager.currentGameState == GameStateCL.Playing)
+        if (gameCycleManager == null) return;
+
+        if (Input.GetMouseButtonDown(0) && gameCycleManager.currentGameState == GameStateCL.Playing)
         {
             DetectClickAndMove();
         }
@@ -22,7 +24,7 @@ public class ChasingLettersGridClicker : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, floorMask)) 
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, floorMask))
         {
             // Finds exact grid square
             int gridX = Mathf.RoundToInt(hit.point.x / gridSize);
@@ -47,7 +49,7 @@ public class ChasingLettersGridClicker : MonoBehaviour
     {
         if (gameCycleManager != null)
         {
-            gameCycleManager.onGameStateChanged += handleStateChange;
+            gameCycleManager.onGameStateChanged += HandleStateChange;
         }
     }
 
@@ -55,20 +57,19 @@ public class ChasingLettersGridClicker : MonoBehaviour
     {
         if (gameCycleManager != null)
         {
-            gameCycleManager.onGameStateChanged -= handleStateChange;
+            gameCycleManager.onGameStateChanged -= HandleStateChange;
         }
     }
 
-    private void handleStateChange(GameStateCL newState)
+    private void HandleStateChange(GameStateCL newState)
     {
         if (newState == GameStateCL.Start)
         {
-            if(cursorVisual != null && robotAgent != null)
+            if (cursorVisual != null && robotAgent != null)
             {
                 cursorVisual.position = new Vector3(0, 0.1f, 0);
-                
                 robotAgent.ResetPath();
-                robotAgent.Warp(new Vector3(0, 0.16f, 0)); 
+                robotAgent.Warp(new Vector3(0, 0.16f, 0));
             }
         }
     }
