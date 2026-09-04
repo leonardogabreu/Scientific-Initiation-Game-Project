@@ -543,6 +543,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractableCL
   type: 0
   interactionPromptText: {fileID: 2566700632909325260}
+  letterText: {fileID: 7017231495055966521}
 --- !u!1 &8358923360465148919
 GameObject:
   m_ObjectHideFlags: 0

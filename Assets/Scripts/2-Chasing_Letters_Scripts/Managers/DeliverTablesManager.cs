@@ -71,28 +71,30 @@ public class DeliverTablesManager : MonoBehaviour
     }
 
     public bool CheckSubmit()
+{
+    GameObject[] tables = GetTablesListForWord();
+    if (tables == null) return false;
+
+    int wordLength = gameManager.targetWord.Length;
+    int startIndex = (tables.Length - wordLength) / 2;
+    int limit = startIndex + wordLength;
+
+    string builtWord = "";
+
+    for (int i = startIndex; i < limit; i++)
     {
-        GameObject[] tables = GetTablesListForWord();
-        if (tables == null) return false;
+        GameObject letterBox = tables[i].transform.GetChild(0).gameObject;
+        InteractableCL interactableCL = letterBox.GetComponent<InteractableCL>();
+        TMP_Text textComponent = interactableCL != null ? interactableCL.LetterText : null;
 
-        int wordLength = gameManager.targetWord.Length;
-        int startIndex = (tables.Length - wordLength) / 2;
-        int limit = startIndex + wordLength;
-
-        string builtWord = "";
-
-        for (int i = startIndex; i < limit; i++)
+        if (textComponent != null)
         {
-            TMP_Text textComponent = tables[i].transform.GetChild(0).GetComponentInChildren<TMP_Text>();
-
-            if (textComponent != null)
-            {
-                builtWord += textComponent.text;
-            }
+            builtWord += textComponent.text;
         }
-
-        return gameManager.targetWord == builtWord.ToUpper();
     }
+
+    return gameManager.targetWord == builtWord.ToUpper();
+}
 
     public void ResetAllTables()
     {
