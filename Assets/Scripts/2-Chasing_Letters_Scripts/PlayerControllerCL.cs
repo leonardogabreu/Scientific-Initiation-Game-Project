@@ -10,7 +10,7 @@ public class PlayerControllerCL : MonoBehaviour
 
     [Header("Interaction Settings")]
     public float interactionRadius = 1.5f;
-    public LayerMask interactionLayer; // Defina a Layer dos objetos interativos aqui
+    public LayerMask interactionLayer;
 
     [Header("Managers")]
     public ChasingLettersGameManager gameManager;
@@ -109,6 +109,10 @@ public class PlayerControllerCL : MonoBehaviour
                 {
                     CarryLetterBox(interactionObject, true);
                 }
+                else
+                {
+                    SwapLetterBox(interactionObject);
+                }
                 break;
 
             case InteractableType.Table:
@@ -176,8 +180,10 @@ public class PlayerControllerCL : MonoBehaviour
         }
 
         if (targetBox == null) return;
+        
+        InteractableCL targetInteractable = targetBox.GetComponent<InteractableCL>();
+        TMP_Text targetBoxText = targetInteractable != null ? targetInteractable.LetterText : null;
 
-        TMP_Text targetBoxText = targetBox.GetComponentInChildren<TMP_Text>();
         if (targetBoxText != null)
         {
             carriedLetterText.text = targetBoxText.text;
@@ -193,6 +199,19 @@ public class PlayerControllerCL : MonoBehaviour
         }
     }
 
+    public void SwapLetterBox(GameObject targetObj)
+    {
+        if (carriedLetter == null || carriedLetterText == null) return;
+
+        InteractableCL targetInteractable = targetObj.GetComponent<InteractableCL>();
+        TMP_Text targetBoxText = targetInteractable != null ? targetInteractable.LetterText : null;
+        if (targetBoxText == null) return;
+
+        string previousCarriedLetter = carriedLetterText.text;
+        carriedLetterText.text = targetBoxText.text;
+        targetBoxText.text = previousCarriedLetter;
+    }
+
     public void DropLetterBox(GameObject targetObj)
     {
         if (targetObj.transform.childCount == 0) return;
@@ -200,7 +219,9 @@ public class PlayerControllerCL : MonoBehaviour
         GameObject interactionLetter = targetObj.transform.GetChild(0).gameObject;
         if (interactionLetter == null) return;
 
-        TMP_Text interactionLetterText = interactionLetter.GetComponentInChildren<TMP_Text>();
+        InteractableCL interactableCL = interactionLetter.GetComponent<InteractableCL>();
+        TMP_Text interactionLetterText = interactableCL != null ? interactableCL.LetterText : null;
+
         if (interactionLetterText != null)
         {
             interactionLetterText.text = carriedLetterText.text;

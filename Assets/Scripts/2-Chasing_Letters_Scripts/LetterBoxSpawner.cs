@@ -56,7 +56,8 @@ public class LetterBoxSpawner : MonoBehaviour
                     letter.transform.localPosition = transform.position;
                     letter.transform.localRotation = Quaternion.Euler(0, -letterRotationFixingConst*90, 0);
                     
-                    TMP_Text letterText = letter.GetComponentInChildren<TMP_Text>();
+                    InteractableCL interactableCL = letter.GetComponent<InteractableCL>();
+                    TMP_Text letterText = interactableCL != null ? interactableCL.LetterText : null;
 
                     if (letterText != null)
                     {
@@ -68,7 +69,6 @@ public class LetterBoxSpawner : MonoBehaviour
                         letter.SetActive(true);
                     }
                      // Corrects the rotation of the interaction prompt
-                    InteractableCL interactableCL = letter.GetComponent<InteractableCL>();
                     if (interactableCL != null && interactableCL.InteractionPromptText != null)
                     {
                         interactableCL.InteractionPromptText.transform.localRotation = Quaternion.Euler(0, letterRotationFixingConst * 90, 0);
