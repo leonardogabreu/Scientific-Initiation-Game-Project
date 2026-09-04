@@ -17,6 +17,11 @@ public class PlayerControllerCL : MonoBehaviour
     public SubmitZoneManager submitZoneManager;
     public HintManager hintManager;
     public GameCycleManager gameCycleManager;
+    [SerializeField] private InteractionEffectManager interactionEffectManager;
+
+    [Header("Interaction Prompt")]
+    [SerializeField] private float promptCheckInterval = 0.1f;
+    private float promptCheckTimer = 0f;
 
     [Header("Animator")]
     private Animator animator;
@@ -39,14 +44,27 @@ public class PlayerControllerCL : MonoBehaviour
         {
             InteractWithClosest();
         }
+
+        if (interactionEffectManager == null) return;
+
+        // Timer limiting the ammount of times it seeks for new interactibles, for better performance.
+        promptCheckTimer += Time.deltaTime;
+        if (promptCheckTimer >= promptCheckInterval)
+        {
+            promptCheckTimer = 0f;
+            SeekInteractibles();
+        }
+    }
+
+    private void SeekInteractibles()
+    {
+        InteractableCL interactible = GetClosestInteractible();
+        interactionEffectManager.InteractionEffect(interactible);
     }
 
     private void InteractWithClosest()
     {
-        // Scans around the player
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, interactionRadius, interactionLayer);
-        
-        InteractableCL closestInteractable = GetClosestInteractible(hitColliders);
+        InteractableCL closestInteractable = GetClosestInteractible();
 
         // if found an interactible object, interacts with it
         if (closestInteractable != null)
@@ -55,8 +73,11 @@ public class PlayerControllerCL : MonoBehaviour
         }
     }
 
-    private InteractableCL GetClosestInteractible(Collider[] colliders)
+    private InteractableCL GetClosestInteractible()
     {
+        // Scans around the player
+        Collider[] colliders = Physics.OverlapSphere(transform.position, interactionRadius, interactionLayer);
+
         InteractableCL closestInteractable = null;
         float closestDistance = Mathf.Infinity;
 
@@ -141,7 +162,7 @@ public class PlayerControllerCL : MonoBehaviour
 
     public void CarryLetterBox(GameObject targetObj, bool isFromSpawner)
     {
-        if(carriedLetter == null || carriedLetterText == null) return;
+        if (carriedLetter == null || carriedLetterText == null) return;
 
         GameObject targetBox = null;
 
