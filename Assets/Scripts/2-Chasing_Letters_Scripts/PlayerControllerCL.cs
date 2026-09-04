@@ -121,7 +121,11 @@ public class PlayerControllerCL : MonoBehaviour
                 {
                     GameObject tableLetter = interactionObject.transform.GetChild(0).gameObject;
 
-                    if (isCarrying && !tableLetter.activeInHierarchy)
+                    if (isCarrying && tableLetter.activeInHierarchy)
+                    {
+                        SwapLetterBox(tableLetter);
+                    }
+                    else if (isCarrying && !tableLetter.activeInHierarchy)
                     {
                         DropLetterBox(interactionObject);
                     }
