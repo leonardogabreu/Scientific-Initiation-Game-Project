@@ -8,7 +8,8 @@ public enum InteractableType
     Deliver,
     Trash,
     Hint,
-    Submit
+    Submit,
+    InteractionButton
 }
 
 public class InteractableCL : MonoBehaviour

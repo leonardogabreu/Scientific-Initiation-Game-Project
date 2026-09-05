@@ -426,3 +426,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractableCL
   type: 5
   interactionPromptText: {fileID: 7248735430312469751}
+  letterText: {fileID: 0}
