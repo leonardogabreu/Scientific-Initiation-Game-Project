@@ -125,12 +125,12 @@ GameObject:
   - component: {fileID: 5150115786479898808}
   - component: {fileID: 4070864971590317702}
   m_Layer: 7
-  m_Name: InteractionText
+  m_Name: Interaction_Prompt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &4626518573753429974
 RectTransform:
   m_ObjectHideFlags: 0

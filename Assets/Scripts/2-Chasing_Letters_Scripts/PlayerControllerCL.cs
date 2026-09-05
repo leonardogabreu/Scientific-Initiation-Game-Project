@@ -165,6 +165,12 @@ public class PlayerControllerCL : MonoBehaviour
                     submitZoneManager.EvaluateWord();
                 }
                 break;
+                
+            case InteractableType.InteractionButton:
+                InteractionButtonController button = interactionObject.GetComponent<InteractionButtonController>();
+
+                button?.Press();
+                break;
         }
     }
 
