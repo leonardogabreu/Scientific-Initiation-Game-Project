@@ -101,6 +101,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
+--- !u!114 &2425895271644591685 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4070864971590317702, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
+  m_PrefabInstance: {fileID: 1861144406490628291}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9541d86e2fd84c1d9990edf0852d74ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshPro
 --- !u!224 &6476368521923505941 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4626518573753429974, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
@@ -114,6 +125,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7577000074159135090}
     m_Modifications:
+    - target: {fileID: 68355895441878849, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
+      propertyPath: interactionPromptText
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 4684631644920127717, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.007189505
@@ -166,6 +181,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7930802634239330636, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8288139844203717295, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
       propertyPath: m_Name
       value: LetterBoxPrefab
@@ -176,7 +195,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -8425517796368605627, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 7930802634239330636, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
@@ -185,6 +205,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4684631644920127717, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
   m_PrefabInstance: {fileID: 2079818281044345738}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9060900951623041715 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7017231495055966521, guid: c31e8aff6ff339fc882932eb0f123571, type: 3}
+  m_PrefabInstance: {fileID: 2079818281044345738}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9541d86e2fd84c1d9990edf0852d74ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshPro
 --- !u!1001 &7974837075283312281
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -340,8 +371,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractableCL
   type: 2
-  interactionPromptText: {fileID: 0}
-  letterText: {fileID: 0}
+  interactionPromptText: {fileID: 2425895271644591685}
+  letterText: {fileID: 9060900951623041715}
 --- !u!4 &7577000074159135090 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6f3c2e799c0e7fad6b73e2047a236c94, type: 3}
