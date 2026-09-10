@@ -25,7 +25,6 @@ public class LetterBoxSpawner : MonoBehaviour
     [SerializeField] private int correctLetterChance = 70;
     private List<char> currentWordLettersList = new List<char>();
     private string lastTrackedWord = "";
-    private string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZÇÁÉÍÓÚÂÊÔÃÕ";
 
     void Start()
     {
@@ -99,8 +98,8 @@ public class LetterBoxSpawner : MonoBehaviour
         else 
         {
             // Pick a completely random letter from the alphabet array
-            int randomIndex = Random.Range(0, alphabet.Length);
-            return alphabet[randomIndex].ToString();
+            int randomIndex = Random.Range(0, ChasingLettersGameManager.Alphabet.Length);
+            return ChasingLettersGameManager.Alphabet[randomIndex].ToString();
         }
     }
 
@@ -111,6 +110,11 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             gameCycleManager.onGameStateChanged += HandleStateChange;
         }
+
+        if (gameManager != null)
+        {
+            gameManager.onWordChanged += HandleWordChanged;
+        }
     }
 
     void OnDisable()
@@ -119,6 +123,19 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             gameCycleManager.onGameStateChanged -= HandleStateChange;
         }
+
+        if (gameManager != null)
+        {
+            gameManager.onWordChanged -= HandleWordChanged;
+        }
+    }
+
+    // A palavra chega da plataforma depois do Start, então a lista de letras da rodada é
+    // remontada no evento em vez de uma única vez na carga da cena.
+    private void HandleWordChanged()
+    {
+        lastTrackedWord = gameManager != null ? gameManager.targetWord : "";
+        FillCurrentWordLettersList();
     }
 
     private void HandleStateChange(GameStateCL newState)
