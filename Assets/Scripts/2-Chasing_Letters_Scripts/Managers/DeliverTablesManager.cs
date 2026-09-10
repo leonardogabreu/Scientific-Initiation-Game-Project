@@ -148,7 +148,16 @@ public class DeliverTablesManager : MonoBehaviour
 
         for (int i = startIndex; i < limit; i++)
         {
-            TMP_Text textComponent = tables[i].transform.GetChild(0).GetComponentInChildren<TMP_Text>();
+            GameObject letterBox = tables[i].transform.GetChild(0).gameObject;
+
+            // Slot vazio não contribui letra nenhuma. Isto era implícito enquanto a busca era
+            // GetComponentInChildren (que devolve null em objeto inativo); com o LetterText
+            // serializado do InteractableCL o texto continua acessível com a caixa desligada,
+            // então a checagem passou a ser explícita.
+            if (!letterBox.activeInHierarchy) continue;
+
+            InteractableCL interactableCL = letterBox.GetComponent<InteractableCL>();
+            TMP_Text textComponent = interactableCL != null ? interactableCL.LetterText : null;
 
             if (textComponent != null)
             {

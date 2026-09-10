@@ -75,6 +75,7 @@ carregam `session_number`.
 | `start_word` | palavra da rodada definida | `word_index`, `challenge_id`, `word`, `word_length`, `source` (`platform`/`local`) |
 | `letter_picked` | aluno pega uma letra | `word_index`, `challenge_id`, `word`, `letter`, `source` (`belt`/`table`), `slot`, `action_index`, `time` |
 | `letter_placed` | aluno põe a letra numa mesa | idem, com `source` = `hand` |
+| `letter_swapped` | aluno troca a letra carregada pela de uma caixa ou mesa | idem, mais `given_letter` (a que ficou no lugar); `letter` é a que passou a carregar |
 | `letter_discarded` | aluno joga a letra no lixo | idem, com `slot` = -1 |
 | `word_mistake` | entrega errada na zona de submit | `word_index`, `challenge_id`, `word`, `submitted_word`, `mistake_number`, `complete`, `time` |
 | `hint_used` | aluno pede dica | `word_index`, `challenge_id`, `word`, `hint_number`, `time` |
@@ -87,7 +88,7 @@ partir do início da palavra (ou da sessão, em `finish_session`).
 Em `word_mistake`, `complete: false` marca a entrega feita com mesas ainda vazias — é ruído de
 manuseio, não erro de conteúdo, e vale filtrar na análise.
 
-**Trajetória.** Os três eventos de letra reconstroem a montagem passo a passo: `action_index`
+**Trajetória.** Os quatro eventos de letra reconstroem a montagem passo a passo: `action_index`
 é sequencial dentro da palavra e `slot` é a posição na palavra (0 = primeira letra, -1 quando
 não se aplica). Dá para ver o aluno montando `CAOLA`, tirando a letra do slot 2 e corrigindo —
 não só que a entrega deu errado. Todo evento é enviado na hora, e não acumulado até o fim da

@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public enum InteractableType
 {
@@ -7,10 +8,25 @@ public enum InteractableType
     Deliver,
     Trash,
     Hint,
-    Submit
+    Submit,
+    InteractionButton
 }
 
 public class InteractableCL : MonoBehaviour
 {
     public InteractableType type;
+    [SerializeField] private TMP_Text interactionPromptText;
+
+    [SerializeField] private TMP_Text letterText;
+
+    public TMP_Text InteractionPromptText => interactionPromptText;
+    public TMP_Text LetterText => letterText;
+
+    void Awake()
+    {
+        if (interactionPromptText != null)
+        {
+            interactionPromptText.gameObject.SetActive(false);
+        }
+    }
 }

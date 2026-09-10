@@ -1,5 +1,72 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &186366454642998145
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1898663073606524987}
+  - component: {fileID: 3461525711722020280}
+  - component: {fileID: 3267936965350211827}
+  m_Layer: 0
+  m_Name: TreadmillCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1898663073606524987
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 186366454642998145}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.001, y: 0.0009999996, z: 0.0009999996}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6488546309879368067}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &3461525711722020280
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 186366454642998145}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 17.165619, y: 5, z: 9}
+  m_Center: {x: 0.32411194, y: 0, z: 0}
+--- !u!114 &3267936965350211827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 186366454642998145}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5995c4e6d1d639738bf5b46697a9e2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TreadmillBehavior
+  treadmillSpeed: 5
 --- !u!1001 &6737748984312721000
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14,23 +81,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1000
+      value: 1000.00024
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1000
+      value: 1000.00024
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -54.100025
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.1548903
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -13.056828
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       propertyPath: m_LocalRotation.w
@@ -42,7 +109,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       propertyPath: m_LocalRotation.z
@@ -74,7 +141,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1898663073606524987}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
       insertIndex: -1
@@ -98,10 +168,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
   m_SerializedVersion: 0
-  m_OverrideArea: 0
-  m_Area: 0
+  m_OverrideArea: 1
+  m_Area: 1
   m_OverrideGenerateLinks: 0
   m_GenerateLinks: 0
   m_IgnoreFromBuild: 0
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!4 &6488546309879368067 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 089fdf01deaeec9149a77ee1f7d4f843, type: 3}
+  m_PrefabInstance: {fileID: 6737748984312721000}
+  m_PrefabAsset: {fileID: 0}

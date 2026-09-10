@@ -99,9 +99,6 @@ PrefabInstance:
       addedObject: {fileID: 8748735638798694696}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 46a13e3101fdf2513be22fd2b8190b79, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 4584356288233365772}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 46a13e3101fdf2513be22fd2b8190b79, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 7251199671376737835}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 46a13e3101fdf2513be22fd2b8190b79, type: 3}
       insertIndex: -1
@@ -137,30 +134,6 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!114 &4584356288233365772
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1613119114222921857}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c8d5614bd085c60a9afb858f239a96b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  interactionZone: 
-  currentRobotState: 0
-  fruitPrefabs:
-  - {fileID: 3841524327908167989}
-  - {fileID: 7537383357742181621}
-  gameManager: {fileID: 0}
-  deliverCorrectSFX: {fileID: 8300000, guid: 78be36088d55f331ba42ada58a9635d8, type: 3}
-  deliverWrongSFX: {fileID: 8300000, guid: 3706017ef6a37186bb7179f193d8251d, type: 3}
-  audioSource: {fileID: 1801314837613003991}
-  deliverRightVFX: {fileID: 7472784297763353005, guid: 2ba4e8e83a9da61dca8d669903b53eea, type: 3}
-  deliverWrongVFX: {fileID: 7472784297763353005, guid: 16c8b5cd072fa5f0fbd112a57f3ae054, type: 3}
-  floatingTextPrefab: {fileID: 2450491849335988020, guid: 811c4a5814dc3635687043e0ec594305, type: 3}
 --- !u!136 &7251199671376737835
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -386,11 +359,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ce382fa83d6ddb1d1895fd40333cb5a4, type: 3}
---- !u!1 &3841524327908167989 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8955950748076661030, guid: ce382fa83d6ddb1d1895fd40333cb5a4, type: 3}
-  m_PrefabInstance: {fileID: 5261958931218696211}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &4468704055229451151 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8575484181775156124, guid: ce382fa83d6ddb1d1895fd40333cb5a4, type: 3}
@@ -472,10 +440,5 @@ PrefabInstance:
 --- !u!4 &7192805603056137807 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3484877884748219221, guid: 3f0265095d58985a78b6d37b8badf387, type: 3}
-  m_PrefabInstance: {fileID: 6020538021941736730}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7537383357742181621 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4257895425047534063, guid: 3f0265095d58985a78b6d37b8badf387, type: 3}
   m_PrefabInstance: {fileID: 6020538021941736730}
   m_PrefabAsset: {fileID: 0}

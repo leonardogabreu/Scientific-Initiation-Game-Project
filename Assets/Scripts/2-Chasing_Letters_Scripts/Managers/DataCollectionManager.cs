@@ -98,6 +98,30 @@ public class DataCollectionManager : MonoBehaviour
         });
     }
 
+    /// <summary>
+    /// O aluno trocou a letra que carregava pela de uma caixa da esteira ou de uma mesa.
+    /// <paramref name="received"/> é a que passou a carregar e <paramref name="given"/> a que
+    /// deixou no lugar — sem os dois lados a trajetória fica com letras mudando sozinhas.
+    /// </summary>
+    public void RegisterLetterSwapped(string received, string given, string source, int slot)
+    {
+        if (currentWordAttempt == null) return;
+
+        GameEventReporter.Instance?.Report("letter_swapped", new LetterSwapPayload
+        {
+            session_number = SessionNumber,
+            word_index = currentWordAttempt.wordIndex,
+            challenge_id = currentWordAttempt.challengeId ?? "",
+            word = currentWordAttempt.targetWord,
+            letter = received ?? "",
+            given_letter = given ?? "",
+            source = source,
+            slot = slot,
+            action_index = ++currentWordAttempt.actionsCount,
+            time = ElapsedOnWord
+        });
+    }
+
     /// <summary>O aluno jogou fora a letra que estava carregando.</summary>
     public void RegisterLetterDiscarded(string letter)
     {
@@ -244,6 +268,21 @@ public class DataCollectionManager : MonoBehaviour
         public string letter;
         public string source;   // "belt", "table" ou "hand"
         public int slot;        // posição na palavra, ou -1
+        public int action_index;
+        public float time;
+    }
+
+    [System.Serializable]
+    private class LetterSwapPayload
+    {
+        public int session_number;
+        public int word_index;
+        public string challenge_id;
+        public string word;
+        public string letter;         // a que o aluno passou a carregar
+        public string given_letter;   // a que ficou no lugar do alvo
+        public string source;         // "belt" ou "table"
+        public int slot;              // posição na palavra, ou -1
         public int action_index;
         public float time;
     }

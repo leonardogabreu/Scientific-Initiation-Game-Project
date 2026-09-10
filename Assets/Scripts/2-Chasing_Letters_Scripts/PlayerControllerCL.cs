@@ -10,16 +10,21 @@ public class PlayerControllerCL : MonoBehaviour
 
     [Header("Interaction Settings")]
     public float interactionRadius = 1.5f;
-    public LayerMask interactionLayer; // Defina a Layer dos objetos interativos aqui
+    public LayerMask interactionLayer;
 
     [Header("Managers")]
     public ChasingLettersGameManager gameManager;
     public SubmitZoneManager submitZoneManager;
     public HintManager hintManager;
     public GameCycleManager gameCycleManager;
+    [SerializeField] private InteractionEffectManager interactionEffectManager;
     [Tooltip("Opcionais: se vazios, são resolvidos na cena. Usados para registrar a trajetória.")]
     public DataCollectionManager dataCollectionManager;
     public DeliverTablesManager deliverTablesManager;
+
+    [Header("Interaction Prompt")]
+    [SerializeField] private float promptCheckInterval = 0.1f;
+    private float promptCheckTimer = 0f;
 
     [Header("Animator")]
     private Animator animator;
@@ -52,14 +57,27 @@ public class PlayerControllerCL : MonoBehaviour
         {
             InteractWithClosest();
         }
+
+        if (interactionEffectManager == null) return;
+
+        // Timer limiting the ammount of times it seeks for new interactibles, for better performance.
+        promptCheckTimer += Time.deltaTime;
+        if (promptCheckTimer >= promptCheckInterval)
+        {
+            promptCheckTimer = 0f;
+            SeekInteractibles();
+        }
+    }
+
+    private void SeekInteractibles()
+    {
+        InteractableCL interactible = GetClosestInteractible();
+        interactionEffectManager.InteractionEffect(interactible);
     }
 
     private void InteractWithClosest()
     {
-        // Scans around the player
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, interactionRadius, interactionLayer);
-        
-        InteractableCL closestInteractable = GetClosestInteractible(hitColliders);
+        InteractableCL closestInteractable = GetClosestInteractible();
 
         // if found an interactible object, interacts with it
         if (closestInteractable != null)
@@ -68,8 +86,11 @@ public class PlayerControllerCL : MonoBehaviour
         }
     }
 
-    private InteractableCL GetClosestInteractible(Collider[] colliders)
+    private InteractableCL GetClosestInteractible()
     {
+        // Scans around the player
+        Collider[] colliders = Physics.OverlapSphere(transform.position, interactionRadius, interactionLayer);
+
         InteractableCL closestInteractable = null;
         float closestDistance = Mathf.Infinity;
 
@@ -102,6 +123,12 @@ public class PlayerControllerCL : MonoBehaviour
                     string pickedFromBelt = CarryLetterBox(interactionObject, true);
                     dataCollectionManager?.RegisterLetterPicked(pickedFromBelt, "belt", -1);
                 }
+                else
+                {
+                    string handedToBelt = carriedLetterText != null ? carriedLetterText.text : null;
+                    string takenFromBelt = SwapLetterBox(interactionObject);
+                    dataCollectionManager?.RegisterLetterSwapped(takenFromBelt, handedToBelt, "belt", -1);
+                }
                 break;
 
             case InteractableType.Table:
@@ -111,7 +138,13 @@ public class PlayerControllerCL : MonoBehaviour
                     GameObject tableLetter = interactionObject.transform.GetChild(0).gameObject;
                     int slot = deliverTablesManager != null ? deliverTablesManager.GetSlotIndex(interactionObject) : -1;
 
-                    if (isCarrying && !tableLetter.activeInHierarchy)
+                    if (isCarrying && tableLetter.activeInHierarchy)
+                    {
+                        string handedToTable = carriedLetterText != null ? carriedLetterText.text : null;
+                        string takenFromTable = SwapLetterBox(tableLetter);
+                        dataCollectionManager?.RegisterLetterSwapped(takenFromTable, handedToTable, "table", slot);
+                    }
+                    else if (isCarrying && !tableLetter.activeInHierarchy)
                     {
                         string placed = DropLetterBox(interactionObject);
                         dataCollectionManager?.RegisterLetterPlaced(placed, slot);
@@ -158,13 +191,19 @@ public class PlayerControllerCL : MonoBehaviour
                     submitZoneManager.EvaluateWord();
                 }
                 break;
+                
+            case InteractableType.InteractionButton:
+                InteractionButtonController button = interactionObject.GetComponent<InteractionButtonController>();
+
+                button?.Press();
+                break;
         }
     }
 
     /// <summary>Pega a letra e devolve qual foi, ou null se não havia o que pegar.</summary>
     public string CarryLetterBox(GameObject targetObj, bool isFromSpawner)
     {
-        if(carriedLetter == null || carriedLetterText == null) return null;
+        if (carriedLetter == null || carriedLetterText == null) return null;
 
         GameObject targetBox = null;
 
@@ -179,7 +218,9 @@ public class PlayerControllerCL : MonoBehaviour
 
         if (targetBox == null) return null;
 
-        TMP_Text targetBoxText = targetBox.GetComponentInChildren<TMP_Text>();
+        InteractableCL targetInteractable = targetBox.GetComponent<InteractableCL>();
+        TMP_Text targetBoxText = targetInteractable != null ? targetInteractable.LetterText : null;
+
         if (targetBoxText != null)
         {
             carriedLetterText.text = targetBoxText.text;
@@ -197,6 +238,23 @@ public class PlayerControllerCL : MonoBehaviour
         return carriedLetterText.text;
     }
 
+    /// <summary>Troca a letra carregada pela do alvo e devolve a que o aluno passou a carregar,
+    /// ou null se não deu para trocar.</summary>
+    public string SwapLetterBox(GameObject targetObj)
+    {
+        if (carriedLetter == null || carriedLetterText == null) return null;
+
+        InteractableCL targetInteractable = targetObj.GetComponent<InteractableCL>();
+        TMP_Text targetBoxText = targetInteractable != null ? targetInteractable.LetterText : null;
+        if (targetBoxText == null) return null;
+
+        string previousCarriedLetter = carriedLetterText.text;
+        carriedLetterText.text = targetBoxText.text;
+        targetBoxText.text = previousCarriedLetter;
+
+        return carriedLetterText.text;
+    }
+
     /// <summary>Larga a letra na mesa e devolve qual foi, ou null se não deu para largar.</summary>
     public string DropLetterBox(GameObject targetObj)
     {
@@ -205,7 +263,9 @@ public class PlayerControllerCL : MonoBehaviour
         GameObject interactionLetter = targetObj.transform.GetChild(0).gameObject;
         if (interactionLetter == null) return null;
 
-        TMP_Text interactionLetterText = interactionLetter.GetComponentInChildren<TMP_Text>();
+        InteractableCL interactableCL = interactionLetter.GetComponent<InteractableCL>();
+        TMP_Text interactionLetterText = interactableCL != null ? interactableCL.LetterText : null;
+
         if (interactionLetterText != null)
         {
             interactionLetterText.text = carriedLetterText.text;
