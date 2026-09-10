@@ -2,10 +2,8 @@ using UnityEngine;
 
 public class SubmitZoneManager : MonoBehaviour
 {
+    public static SubmitZoneManager Instance { get; private set; }
     [SerializeField] private DeliverTablesManager deliverTablesManager;
-    [SerializeField] private ChasingLettersGameManager gameManager;
-    [SerializeField] private GameCycleManager gameCycleManager;
-    [SerializeField] private DataCollectionManager dataCollectionManager;
 
     [Header("Audio & VFX")]
     public AudioClip deliverCorrectSFX;
@@ -13,6 +11,21 @@ public class SubmitZoneManager : MonoBehaviour
     public AudioSource audioSource;
     public GameObject deliverRightVFX;
     public GameObject deliverWrongVFX;
+    
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     public void EvaluateWord()
     {
@@ -30,18 +43,18 @@ public class SubmitZoneManager : MonoBehaviour
 
     private void HandleCorrectWord()
     {
-        dataCollectionManager?.FinishWordAttempt(); // Saves the correct word
+        DataCollectionManager.Instance?.FinishWordAttempt(); // Saves the correct word
 
         deliverTablesManager.ResetAllTables();
-        gameManager?.SelectNewWord();
+        WordSelectionManager.Instance?.SelectNewWord();
         deliverTablesManager.SpawnTables();
 
-        if (dataCollectionManager != null && gameManager != null)
+        if (DataCollectionManager.Instance != null && WordSelectionManager.Instance != null)
         {
-            dataCollectionManager.StartNewWordAttempt(gameManager.targetWord); // Tracks new word
+            DataCollectionManager.Instance?.StartNewWordAttempt(WordSelectionManager.Instance?.TargetWord ?? ""); // Tracks new word
         }
 
-        gameCycleManager?.addScore();
+        GameCycleManager.Instance?.addScore();
 
         audioSource?.PlayOneShot(deliverCorrectSFX);
         Instantiate(deliverRightVFX, transform.position + Vector3.up, Quaternion.identity);
@@ -52,6 +65,6 @@ public class SubmitZoneManager : MonoBehaviour
         audioSource?.PlayOneShot(deliverWrongSFX);
         Instantiate(deliverWrongVFX, transform.position, Quaternion.identity);
 
-        dataCollectionManager?.RegisterMistake();
+        DataCollectionManager.Instance?.RegisterMistake();
     }
 }

@@ -8,8 +8,6 @@ public class DeliverTablesManager : MonoBehaviour
     private GameObject[] evenTablesList;
     private GameObject[] oddTablesList;
 
-    [SerializeField] private ChasingLettersGameManager gameManager;
-
     void Start()
     {
         FillTablesLists();
@@ -42,9 +40,9 @@ public class DeliverTablesManager : MonoBehaviour
     // Decide qual lista (par/ímpar) usar com base no tamanho da palavra atual.
     private GameObject[] GetTablesListForWord()
     {
-        if (gameManager == null || gameManager.targetWord == null) return null;
+        if (WordSelectionManager.Instance == null || WordSelectionManager.Instance.TargetWord == null) return null;
 
-        bool isEven = gameManager.targetWord.Length % 2 == 0;
+        bool isEven = WordSelectionManager.Instance.TargetWord.Length % 2 == 0;
         return isEven ? evenTablesList : oddTablesList;
     }
 
@@ -53,11 +51,11 @@ public class DeliverTablesManager : MonoBehaviour
         GameObject[] tables = GetTablesListForWord();
         if (tables == null) return;
 
-        int wordLength = gameManager.targetWord.Length;
+        int wordLength = WordSelectionManager.Instance.TargetWord.Length;
 
         if (wordLength > tables.Length)
         {
-            Debug.LogError($"[DeliverTablesManager] Palavra '{gameManager.targetWord}' ({wordLength} letras) excede o número de mesas disponíveis ({tables.Length}).");
+            Debug.LogError($"[DeliverTablesManager] Palavra '{WordSelectionManager.Instance.TargetWord}' ({wordLength} letras) excede o número de mesas disponíveis ({tables.Length}).");
             return;
         }
 
@@ -75,7 +73,7 @@ public class DeliverTablesManager : MonoBehaviour
     GameObject[] tables = GetTablesListForWord();
     if (tables == null) return false;
 
-    int wordLength = gameManager.targetWord.Length;
+    int wordLength = WordSelectionManager.Instance.TargetWord.Length;
     int startIndex = (tables.Length - wordLength) / 2;
     int limit = startIndex + wordLength;
 
@@ -93,7 +91,7 @@ public class DeliverTablesManager : MonoBehaviour
         }
     }
 
-    return gameManager.targetWord == builtWord.ToUpper();
+    return WordSelectionManager.Instance.TargetWord == builtWord.ToUpper();
 }
 
     public void ResetAllTables()

@@ -7,8 +7,7 @@ using UnityEngine.SceneManagement;
 public enum GameStateCL { Start, Playing, Over }
 public class GameCycleManager : MonoBehaviour
 {
-    [SerializeField] ChasingLettersGameManager gameManager;
-    [SerializeField] DataCollectionManager dataCollectionManager;
+    public static GameCycleManager Instance { get; private set; }
 
     [Header("Game Loop")]
     public GameStateCL currentGameState = GameStateCL.Start;
@@ -24,6 +23,22 @@ public class GameCycleManager : MonoBehaviour
     public GameObject gameOverPanel;
     public GameObject[] starsArray;
     public GameObject[] starsOutlineArray;
+
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     void Start()
     {
@@ -63,11 +78,9 @@ public void changeGameState(GameStateCL gameStateCL)
             foreach (GameObject star in starsArray) star.SetActive(false);
             foreach (GameObject starOutline in starsOutlineArray) starOutline.SetActive(true);
 
-            gameManager?.letterBoxesInstances?.ForEach(box => box?.SetActive(false));
-
-            if (dataCollectionManager != null && gameManager != null)
+            if (DataCollectionManager.Instance != null)
             {
-                dataCollectionManager.StartNewWordAttempt(gameManager.targetWord);
+                DataCollectionManager.Instance.StartNewWordAttempt(WordSelectionManager.Instance?.TargetWord ?? "");
             }
             break;
 
