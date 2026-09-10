@@ -63,7 +63,7 @@ public class DataCollectionManager : MonoBehaviour
     /// </summary>
     public void RegisterLetterPicked(string letter, string source, int slot)
     {
-        if (currentWordAttempt == null) return;
+        if (currentWordAttempt == null || !LetterMoved(letter)) return;
 
         GameEventReporter.Instance?.Report("letter_picked", new LetterActionPayload
         {
@@ -82,7 +82,7 @@ public class DataCollectionManager : MonoBehaviour
     /// <summary>Uma letra foi colocada numa mesa. <paramref name="slot"/> é a posição na palavra.</summary>
     public void RegisterLetterPlaced(string letter, int slot)
     {
-        if (currentWordAttempt == null) return;
+        if (currentWordAttempt == null || !LetterMoved(letter)) return;
 
         GameEventReporter.Instance?.Report("letter_placed", new LetterActionPayload
         {
@@ -105,7 +105,7 @@ public class DataCollectionManager : MonoBehaviour
     /// </summary>
     public void RegisterLetterSwapped(string received, string given, string source, int slot)
     {
-        if (currentWordAttempt == null) return;
+        if (currentWordAttempt == null || !LetterMoved(received)) return;
 
         GameEventReporter.Instance?.Report("letter_swapped", new LetterSwapPayload
         {
@@ -125,7 +125,7 @@ public class DataCollectionManager : MonoBehaviour
     /// <summary>O aluno jogou fora a letra que estava carregando.</summary>
     public void RegisterLetterDiscarded(string letter)
     {
-        if (currentWordAttempt == null) return;
+        if (currentWordAttempt == null || !LetterMoved(letter)) return;
 
         GameEventReporter.Instance?.Report("letter_discarded", new LetterActionPayload
         {
@@ -232,6 +232,13 @@ public class DataCollectionManager : MonoBehaviour
             total_time = Time.time - sessionStartTime
         });
     }
+
+    /// <summary>
+    /// CarryLetterBox, DropLetterBox e SwapLetterBox devolvem null quando a ação não aconteceu
+    /// (player mal configurado, ou alvo sem LetterText no InteractableCL). Sem esta checagem a
+    /// trajetória ganharia eventos de letras que nunca se moveram.
+    /// </summary>
+    private static bool LetterMoved(string letter) => !string.IsNullOrEmpty(letter);
 
     private int SessionNumber => WebGLManager.Instance?.SessionNumber ?? 0;
 
