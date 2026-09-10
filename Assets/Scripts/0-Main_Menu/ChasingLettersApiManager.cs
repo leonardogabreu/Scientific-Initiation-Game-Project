@@ -1,11 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 
 [System.Serializable]
-public class ApiWordResponse 
+public class ApiWordResponse
 {
     public string challenge_id;
     public string word;
@@ -14,14 +14,12 @@ public class ApiWordResponse
 
 public class ChasingLettersApiManager : MonoBehaviour
 {
-    public static ChasingLettersApiManager Instance; 
-    
-    [SerializeField] private string baseUrl = "https://adapt2learn-895112363610.us-central1.run.app"; 
-    
-    [Header("Conexões com o Jogo")]
-    [SerializeField] private ChasingLettersGameManager gameManager;
-    [SerializeField] private Image screenImage;
-    
+    public static ChasingLettersApiManager Instance;
+
+    [SerializeField] private string baseUrl = "https://adapt2learn-895112363610.us-central1.run.app";
+
+    public event Action<Sprite> onWordImageReceived;
+
     void Awake()
     {
         if (Instance != null)
@@ -37,15 +35,15 @@ public class ChasingLettersApiManager : MonoBehaviour
         FetchWordFromApi();
     }
 
-    public void FetchWordFromApi() 
+    public void FetchWordFromApi()
     {
         StartCoroutine(FetchSinglePuzzleCoroutine());
     }
 
     private IEnumerator FetchSinglePuzzleCoroutine()
     {
-        WebGLManager wgl = WebGLManager.Instance; 
-        
+        WebGLManager wgl = WebGLManager.Instance;
+
         float timeout = 10f;
         while (wgl != null && (wgl.AuthToken == null || wgl.CurrentParams == null) && timeout > 0)
         {
@@ -78,18 +76,14 @@ public class ChasingLettersApiManager : MonoBehaviour
                 {
                     Debug.LogError($"Falha ao comunicar com a API: {www.error}");
                 }
-                else if (www.downloadHandler?.text != null) 
+                else if (www.downloadHandler?.text != null)
                 {
                     ApiWordResponse parsedData = JsonUtility.FromJson<ApiWordResponse>(www.downloadHandler.text);
-                    
+
                     if (parsedData?.word != null)
                     {
                         Debug.Log($"Sucesso! A palavra sorteada pela API é: {parsedData.word}");
-
-                        if (gameManager != null)
-                        {
-                            gameManager.targetWord = parsedData.word.ToUpper();
-                        }
+                        WordSelectionManager.Instance?.SetTargetWord(parsedData.word);
 
                         if (parsedData.image_url != null)
                         {
@@ -105,7 +99,7 @@ public class ChasingLettersApiManager : MonoBehaviour
         }
     }
 
-    private IEnumerator DownloadAndSetImage(string imageUrl) 
+    private IEnumerator DownloadAndSetImage(string imageUrl)
     {
         using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(imageUrl))
         {
@@ -118,14 +112,10 @@ public class ChasingLettersApiManager : MonoBehaviour
             else
             {
                 Texture2D texture = DownloadHandlerTexture.GetContent(www);
-                if (texture != null && screenImage != null)
+                if (texture != null)
                 {
                     Sprite newSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                    if (newSprite != null)
-                    {
-                        screenImage.sprite = newSprite;
-                        screenImage.preserveAspect = true;
-                    }
+                    onWordImageReceived?.Invoke(newSprite);
                 }
             }
         }
