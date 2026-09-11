@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
@@ -13,6 +14,8 @@ public class GameCycleManager : MonoBehaviour
     [Header("Game Loop")]
     public GameStateCL currentGameState = GameStateCL.Start;
     [SerializeField] private int wordsToWin = 3;
+    [Tooltip("Segundos de espera pela primeira palavra da plataforma antes de começar assim mesmo.")]
+    [SerializeField] private float firstWordTimeout = 20f;
     private int correctWords = 0;
     public event Action<GameStateCL> onGameStateChanged;
 
@@ -24,6 +27,8 @@ public class GameCycleManager : MonoBehaviour
     public GameObject gameOverPanel;
     public GameObject[] starsArray;
     public GameObject[] starsOutlineArray;
+
+    private bool isStartingGame;
 
     void Start()
     {
@@ -67,7 +72,8 @@ public void changeGameState(GameStateCL gameStateCL)
 
             if (dataCollectionManager != null && gameManager != null)
             {
-                dataCollectionManager.StartNewWordAttempt(gameManager.targetWord);
+                dataCollectionManager.ReportSessionStarted(wordsToWin);
+                dataCollectionManager.StartNewWordAttempt(gameManager.targetWord, gameManager.CurrentChallengeId);
             }
             break;
 
@@ -76,8 +82,14 @@ public void changeGameState(GameStateCL gameStateCL)
             startPanel.SetActive(false);
             playingPanel.SetActive(false);
             gameOverPanel.SetActive(true);
-            
+
             navMeshAgent?.ResetPath();
+
+            dataCollectionManager?.ReportSessionFinished();
+
+            // O botão do painel de game over reinicia direto em Playing, sem passar por Start:
+            // deixa a próxima palavra (e as mesas) prontas para essa nova partida.
+            gameManager?.SelectNewWord();
             break;
         }
     // Observer
@@ -101,7 +113,33 @@ public void changeGameState(GameStateCL gameStateCL)
 
     }
 
-    public void StartGameFromButton(){
+    public void StartGameFromButton()
+    {
+        if (isStartingGame) return;
+
+        StartCoroutine(StartGameWhenWordIsReady());
+    }
+
+    // A primeira palavra é buscada na plataforma já no Start da cena, mas se a rede estiver
+    // lenta o painel inicial continua na tela até ela chegar — começar sem palavra deixaria a
+    // esteira sem letras certas e as mesas vazias.
+    private IEnumerator StartGameWhenWordIsReady()
+    {
+        isStartingGame = true;
+
+        float remaining = firstWordTimeout;
+        while (gameManager != null && !gameManager.IsWordReady && remaining > 0f)
+        {
+            remaining -= Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (gameManager != null && !gameManager.IsWordReady)
+        {
+            Debug.LogError("[GameCycleManager] Nenhuma palavra disponível — iniciando assim mesmo.");
+        }
+
+        isStartingGame = false;
         changeGameState(GameStateCL.Playing);
     }
 
