@@ -9,12 +9,25 @@ public class HintManager : MonoBehaviour
     [SerializeField] private float hintCooldown = 20.0f;
     [SerializeField] private float hintShowTime = 10.0f;
     [SerializeField] private GameCycleManager gameCycleManager;
+    [Tooltip("Opcional: se vazio, é resolvido na cena. Usado para registrar o uso de dicas.")]
+    [SerializeField] private DataCollectionManager dataCollectionManager;
 
     private bool canGiveHint = true;
+
+    void Start()
+    {
+        if (dataCollectionManager == null)
+        {
+            dataCollectionManager = FindAnyObjectByType<DataCollectionManager>();
+        }
+    }
 
     public void ShowHint()
     {
         if (hintText == null || !canGiveHint) return;
+
+        // Quantas dicas o aluno precisou é um dado da pesquisa tão relevante quanto os erros.
+        dataCollectionManager?.RegisterHint();
 
         StartCoroutine(HintRoutine());
     }
