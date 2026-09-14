@@ -4,11 +4,7 @@ using System.Collections.Generic;
 
 public class LetterBoxSpawner : MonoBehaviour
 {
-    [Header("Game Managers")] 
-    [SerializeField] private ChasingLettersGameManager gameManager;
-    [SerializeField] private GameCycleManager gameCycleManager; 
-
-    [Header("Letter rotation parameters")] 
+    [Header("Letter rotation parameters")]
     [SerializeField] private bool isALeftSpawner;
     private int letterRotationFixingConst;
     private const float LetterHeightOffset = 0.51f;
@@ -41,15 +37,15 @@ public class LetterBoxSpawner : MonoBehaviour
 
     void Update()
     {
-        if (gameCycleManager == null) return;
+        if (GameCycleManager.Instance == null) return;
 
-        if (gameCycleManager.currentGameState == GameStateCL.Playing)
+        if (GameCycleManager.Instance.currentGameState == GameStateCL.Playing)
         {
             timeCounter += Time.deltaTime;
 
             if (timeCounter >= spawnTimer && currentWordLettersList != null)
             {
-                GameObject letter = gameManager.GetLetterBoxInstance();
+                GameObject letter = ChasingLettersGameManager.Instance.GetLetterBoxInstance();
 
                 if (letter != null){   
                     letter.transform.localPosition = transform.position;
@@ -83,7 +79,7 @@ public class LetterBoxSpawner : MonoBehaviour
     private string GetWeightedRandomLetter()
     {
         int roll = Random.Range(0, 100);
-        string currentWord = gameManager.targetWord; 
+        string currentWord = ChasingLettersGameManager.Instance?.targetWord;
 
         // If the roll is within the percentage and the word is valid, pick a letter from the target word
         if (roll < correctLetterChance && !string.IsNullOrEmpty(currentWord) && currentWordLettersList != null)
@@ -112,27 +108,27 @@ public class LetterBoxSpawner : MonoBehaviour
     // Observer Pattern
     void OnEnable()
     {
-        if (gameCycleManager != null)
+        if (GameCycleManager.Instance != null)
         {
-            gameCycleManager.onGameStateChanged += HandleStateChange;
+            GameCycleManager.Instance.onGameStateChanged += HandleStateChange;
         }
 
-        if (gameManager != null)
+        if (ChasingLettersGameManager.Instance != null)
         {
-            gameManager.onWordChanged += HandleWordChanged;
+            ChasingLettersGameManager.Instance.onWordChanged += HandleWordChanged;
         }
     }
 
     void OnDisable()
     {
-        if (gameCycleManager != null)
+        if (GameCycleManager.Instance != null)
         {
-            gameCycleManager.onGameStateChanged -= HandleStateChange;
+            GameCycleManager.Instance.onGameStateChanged -= HandleStateChange;
         }
 
-        if (gameManager != null)
+        if (ChasingLettersGameManager.Instance != null)
         {
-            gameManager.onWordChanged -= HandleWordChanged;
+            ChasingLettersGameManager.Instance.onWordChanged -= HandleWordChanged;
         }
     }
 
@@ -140,7 +136,7 @@ public class LetterBoxSpawner : MonoBehaviour
     // remontada no evento em vez de uma única vez na carga da cena.
     private void HandleWordChanged()
     {
-        lastTrackedWord = gameManager != null ? gameManager.targetWord : "";
+        lastTrackedWord = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.targetWord : "";
         FillCurrentWordLettersList();
     }
 
@@ -155,12 +151,12 @@ public class LetterBoxSpawner : MonoBehaviour
 
     private void FillCurrentWordLettersList()
     {
-        if (currentWordLettersList != null && gameManager != null && gameManager.targetWord != null)
+        if (currentWordLettersList != null && ChasingLettersGameManager.Instance != null && ChasingLettersGameManager.Instance.targetWord != null)
         {
             currentWordLettersList.Clear();
-            for (int i = 0; i < gameManager.targetWord.Length; i++) 
+            for (int i = 0; i < ChasingLettersGameManager.Instance.targetWord.Length; i++)
             {
-                currentWordLettersList.Add(gameManager.targetWord[i]);
+                currentWordLettersList.Add(ChasingLettersGameManager.Instance.targetWord[i]);
             }
         }
     }

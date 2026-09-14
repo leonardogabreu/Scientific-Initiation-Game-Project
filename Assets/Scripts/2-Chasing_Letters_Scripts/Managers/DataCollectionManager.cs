@@ -12,6 +12,22 @@ public class DataCollectionManager : MonoBehaviour
 {
     private WordAttemptData currentWordAttempt;
     private float wordStartTime;
+    public static DataCollectionManager Instance { get; private set; }
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     private float sessionStartTime;
     private int wordsCompleted;

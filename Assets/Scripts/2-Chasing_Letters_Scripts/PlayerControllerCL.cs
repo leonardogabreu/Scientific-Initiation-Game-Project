@@ -13,10 +13,6 @@ public class PlayerControllerCL : MonoBehaviour
     public LayerMask interactionLayer;
 
     [Header("Managers")]
-    public ChasingLettersGameManager gameManager;
-    public SubmitZoneManager submitZoneManager;
-    public HintManager hintManager;
-    public GameCycleManager gameCycleManager;
     [SerializeField] private InteractionEffectManager interactionEffectManager;
     [Tooltip("Opcionais: se vazios, são resolvidos na cena. Usados para registrar a trajetória.")]
     public DataCollectionManager dataCollectionManager;
@@ -53,7 +49,7 @@ public class PlayerControllerCL : MonoBehaviour
             animator.SetFloat("Speed", agent.velocity.magnitude);
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && gameCycleManager != null && gameCycleManager.currentGameState == GameStateCL.Playing)
+        if (Input.GetKeyDown(KeyCode.Space) && GameCycleManager.Instance != null && GameCycleManager.Instance.currentGameState == GameStateCL.Playing)
         {
             InteractWithClosest();
         }
@@ -94,7 +90,6 @@ public class PlayerControllerCL : MonoBehaviour
         InteractableCL closestInteractable = null;
         float closestDistance = Mathf.Infinity;
 
-        // Searches nearest neighbor
         foreach (Collider hitCollider in colliders)
         {
             InteractableCL interactable = hitCollider.GetComponent<InteractableCL>();
@@ -179,22 +174,15 @@ public class PlayerControllerCL : MonoBehaviour
                 break;
 
             case InteractableType.Hint:
-                if (hintManager != null)
-                {
-                    hintManager.ShowHint();
-                }
+                HintManager.Instance?.ShowHint();
                 break;
 
             case InteractableType.Submit:
-                if (submitZoneManager != null)
-                {
-                    submitZoneManager.EvaluateWord();
-                }
+                SubmitZoneManager.Instance?.EvaluateWord();
                 break;
-                
+
             case InteractableType.InteractionButton:
                 InteractionButtonController button = interactionObject.GetComponent<InteractionButtonController>();
-
                 button?.Press();
                 break;
         }

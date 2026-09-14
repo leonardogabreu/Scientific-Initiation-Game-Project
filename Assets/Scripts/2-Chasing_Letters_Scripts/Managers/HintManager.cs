@@ -1,33 +1,39 @@
+using System;
 using System.Collections;
-using TMPro;
 using UnityEngine;
 
 public class HintManager : MonoBehaviour
 {
+    public static HintManager Instance { get; private set; }
+
     [Header("Hint Manager")]
-    [SerializeField] private TMP_Text hintText;
     [SerializeField] private float hintCooldown = 20.0f;
     [SerializeField] private float hintShowTime = 10.0f;
-    [SerializeField] private GameCycleManager gameCycleManager;
-    [Tooltip("Opcional: se vazio, é resolvido na cena. Usado para registrar o uso de dicas.")]
-    [SerializeField] private DataCollectionManager dataCollectionManager;
-
     private bool canGiveHint = true;
 
-    void Start()
+    public event Action<bool> onHintVisibilityChanged;
+
+    void Awake()
     {
-        if (dataCollectionManager == null)
+        if (Instance != null && Instance != this)
         {
-            dataCollectionManager = FindAnyObjectByType<DataCollectionManager>();
+            Destroy(gameObject);
+            return;
         }
+        Instance = this;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
     }
 
     public void ShowHint()
     {
-        if (hintText == null || !canGiveHint) return;
+        if (!canGiveHint) return;
 
         // Quantas dicas o aluno precisou é um dado da pesquisa tão relevante quanto os erros.
-        dataCollectionManager?.RegisterHint();
+        DataCollectionManager.Instance?.RegisterHint();
 
         StartCoroutine(HintRoutine());
     }
@@ -35,11 +41,11 @@ public class HintManager : MonoBehaviour
     private IEnumerator HintRoutine()
     {
         canGiveHint = false;
-        hintText.gameObject.SetActive(true);
+        onHintVisibilityChanged?.Invoke(true);
 
         yield return new WaitForSeconds(hintShowTime);
 
-        hintText.gameObject.SetActive(false);
+        onHintVisibilityChanged?.Invoke(false);
 
         float remainingCooldown = hintCooldown - hintShowTime;
         if (remainingCooldown > 0)
@@ -52,18 +58,27 @@ public class HintManager : MonoBehaviour
 
     void OnEnable()
     {
-        if (gameCycleManager != null)
+        if (GameCycleManager.Instance != null)
         {
-            gameCycleManager.onGameStateChanged += HandleStateChange;
+            GameCycleManager.Instance.onGameStateChanged += HandleStateChange;
         }
+
+        onHintVisibilityChanged += HandleHintVisibilityChanged;
     }
 
     void OnDisable()
     {
-        if (gameCycleManager != null)
+        if (GameCycleManager.Instance != null)
         {
-            gameCycleManager.onGameStateChanged -= HandleStateChange;
+            GameCycleManager.Instance.onGameStateChanged -= HandleStateChange;
         }
+
+        onHintVisibilityChanged -= HandleHintVisibilityChanged;
+    }
+
+    private void HandleHintVisibilityChanged(bool visible)
+    {
+        ChasingLettersGameManager.Instance?.SetHintVisible(visible);
     }
 
     private void HandleStateChange(GameStateCL newState)
@@ -71,10 +86,6 @@ public class HintManager : MonoBehaviour
         // Interrupts any ongoing hint and resets the state, for any new state.
         StopAllCoroutines();
         canGiveHint = true;
-
-        if (hintText != null)
-        {
-            hintText.gameObject.SetActive(false);
-        }
+        onHintVisibilityChanged?.Invoke(false);
     }
 }

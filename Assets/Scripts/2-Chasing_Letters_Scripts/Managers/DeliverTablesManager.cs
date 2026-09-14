@@ -8,8 +8,6 @@ public class DeliverTablesManager : MonoBehaviour
     private GameObject[] evenTablesList;
     private GameObject[] oddTablesList;
 
-    [SerializeField] private ChasingLettersGameManager gameManager;
-
     void Awake()
     {
         // Antes de qualquer Start: a escolha de palavra precisa saber quantas mesas existem
@@ -17,22 +15,22 @@ public class DeliverTablesManager : MonoBehaviour
         FillTablesLists();
         ResetAllTables();
 
-        gameManager?.RegisterTables(this);
+        ChasingLettersGameManager.Instance?.RegisterTables(this);
     }
 
     void OnEnable()
     {
-        if (gameManager != null)
+        if (ChasingLettersGameManager.Instance != null)
         {
-            gameManager.onWordChanged += HandleWordChanged;
+            ChasingLettersGameManager.Instance.onWordChanged += HandleWordChanged;
         }
     }
 
     void OnDisable()
     {
-        if (gameManager != null)
+        if (ChasingLettersGameManager.Instance != null)
         {
-            gameManager.onWordChanged -= HandleWordChanged;
+            ChasingLettersGameManager.Instance.onWordChanged -= HandleWordChanged;
         }
     }
 
@@ -69,9 +67,9 @@ public class DeliverTablesManager : MonoBehaviour
     // Decide qual lista (par/ímpar) usar com base no tamanho da palavra atual.
     private GameObject[] GetTablesListForWord()
     {
-        if (gameManager == null || gameManager.targetWord == null) return null;
+        if (ChasingLettersGameManager.Instance == null || ChasingLettersGameManager.Instance.targetWord == null) return null;
 
-        return GetTablesListForLength(gameManager.targetWord.Length);
+        return GetTablesListForLength(ChasingLettersGameManager.Instance.targetWord.Length);
     }
 
     private GameObject[] GetTablesListForLength(int wordLength)
@@ -89,7 +87,7 @@ public class DeliverTablesManager : MonoBehaviour
         GameObject[] tables = GetTablesListForWord();
         if (tables == null || table == null) return -1;
 
-        int wordLength = gameManager.targetWord.Length;
+        int wordLength = ChasingLettersGameManager.Instance.targetWord.Length;
         if (wordLength <= 0 || wordLength > tables.Length) return -1;
 
         int startIndex = (tables.Length - wordLength) / 2;
@@ -115,11 +113,11 @@ public class DeliverTablesManager : MonoBehaviour
         GameObject[] tables = GetTablesListForWord();
         if (tables == null) return;
 
-        int wordLength = gameManager.targetWord.Length;
+        int wordLength = ChasingLettersGameManager.Instance.targetWord.Length;
 
         if (wordLength > tables.Length)
         {
-            Debug.LogError($"[DeliverTablesManager] Palavra '{gameManager.targetWord}' ({wordLength} letras) excede o número de mesas disponíveis ({tables.Length}).");
+            Debug.LogError($"[DeliverTablesManager] Palavra '{ChasingLettersGameManager.Instance.targetWord}' ({wordLength} letras) excede o número de mesas disponíveis ({tables.Length}).");
             return;
         }
 
@@ -138,7 +136,7 @@ public class DeliverTablesManager : MonoBehaviour
         GameObject[] tables = GetTablesListForWord();
         if (tables == null) return "";
 
-        int wordLength = gameManager.targetWord.Length;
+        int wordLength = ChasingLettersGameManager.Instance.targetWord.Length;
         if (wordLength <= 0 || wordLength > tables.Length) return "";
 
         int startIndex = (tables.Length - wordLength) / 2;
@@ -170,9 +168,9 @@ public class DeliverTablesManager : MonoBehaviour
 
     public bool CheckSubmit()
     {
-        if (gameManager == null || string.IsNullOrEmpty(gameManager.targetWord)) return false;
+        if (ChasingLettersGameManager.Instance == null || string.IsNullOrEmpty(ChasingLettersGameManager.Instance.targetWord)) return false;
 
-        return gameManager.targetWord == GetBuiltWord();
+        return ChasingLettersGameManager.Instance.targetWord == GetBuiltWord();
     }
 
     public void ResetAllTables()

@@ -2,10 +2,8 @@ using UnityEngine;
 
 public class SubmitZoneManager : MonoBehaviour
 {
+    public static SubmitZoneManager Instance { get; private set; }
     [SerializeField] private DeliverTablesManager deliverTablesManager;
-    [SerializeField] private ChasingLettersGameManager gameManager;
-    [SerializeField] private GameCycleManager gameCycleManager;
-    [SerializeField] private DataCollectionManager dataCollectionManager;
 
     [Header("Audio & VFX")]
     public AudioClip deliverCorrectSFX;
@@ -13,6 +11,21 @@ public class SubmitZoneManager : MonoBehaviour
     public AudioSource audioSource;
     public GameObject deliverRightVFX;
     public GameObject deliverWrongVFX;
+    
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     public void EvaluateWord()
     {
@@ -23,7 +36,7 @@ public class SubmitZoneManager : MonoBehaviour
 
         // Slot vazio não contribui caractere nenhum: entrega com mesas pela metade dá uma
         // palavra mais curta. Isso é entrega incompleta, não erro de conteúdo.
-        bool isCompleteAttempt = submittedWord.Length == gameManager?.targetWord?.Length;
+        bool isCompleteAttempt = submittedWord.Length == ChasingLettersGameManager.Instance?.targetWord?.Length;
 
         if (deliverTablesManager.CheckSubmit())
         {
@@ -37,24 +50,26 @@ public class SubmitZoneManager : MonoBehaviour
 
     private void HandleCorrectWord()
     {
-        dataCollectionManager?.FinishWordAttempt(); // Saves the correct word
+        DataCollectionManager.Instance?.FinishWordAttempt(); // Saves the correct word
 
         audioSource?.PlayOneShot(deliverCorrectSFX);
         Instantiate(deliverRightVFX, transform.position + Vector3.up, Quaternion.identity);
 
         deliverTablesManager.ResetAllTables();
 
-        gameCycleManager?.addScore(); // pode encerrar a sessão na última palavra
+        GameCycleManager.Instance?.addScore(); // pode encerrar a sessão na última palavra
 
-        if (gameCycleManager != null && gameCycleManager.currentGameState != GameStateCL.Playing) return;
+        if (GameCycleManager.Instance != null && GameCycleManager.Instance.currentGameState != GameStateCL.Playing) return;
 
         // A próxima palavra vem da plataforma: as mesas são remontadas pelo onWordChanged e a
         // nova tentativa só começa a contar tempo quando a palavra existe.
-        gameManager?.SelectNewWord(() =>
+        ChasingLettersGameManager.Instance?.SelectNewWord(() =>
         {
-            if (dataCollectionManager != null && gameManager != null)
+            if (DataCollectionManager.Instance != null && ChasingLettersGameManager.Instance != null)
             {
-                dataCollectionManager.StartNewWordAttempt(gameManager.targetWord, gameManager.CurrentChallengeId);
+                DataCollectionManager.Instance.StartNewWordAttempt(
+                    ChasingLettersGameManager.Instance.targetWord,
+                    ChasingLettersGameManager.Instance.CurrentChallengeId);
             }
         });
     }
@@ -64,6 +79,6 @@ public class SubmitZoneManager : MonoBehaviour
         audioSource?.PlayOneShot(deliverWrongSFX);
         Instantiate(deliverWrongVFX, transform.position, Quaternion.identity);
 
-        dataCollectionManager?.RegisterMistake(submittedWord, isCompleteAttempt);
+        DataCollectionManager.Instance?.RegisterMistake(submittedWord, isCompleteAttempt);
     }
 }

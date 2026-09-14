@@ -7,6 +7,8 @@ using UnityEngine.UI;
 
 public class ChasingLettersGameManager : MonoBehaviour
 {
+    public static ChasingLettersGameManager Instance { get; private set; }
+
     /// <summary>
     /// Letras que a esteira sabe produzir. Palavras da plataforma com qualquer caractere fora
     /// desta lista são descartadas, senão a rodada fica impossível de completar.
@@ -41,6 +43,17 @@ public class ChasingLettersGameManager : MonoBehaviour
 
     void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+            return;
+        }
+
+        Instance = this;
+
+        // A palavra só aparece quando o HintManager libera: fora disso o texto fica oculto.
+        hintText?.gameObject.SetActive(false);
+
         // Populate the object pool at the start of the game
         for(int i = 0; i < numberOfInstances; i++)
         {
@@ -52,6 +65,14 @@ public class ChasingLettersGameManager : MonoBehaviour
         levelWords = Resources.LoadAll<WordData>("WordData");
 
         refillAvailableWords();
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     void Start()
@@ -74,6 +95,12 @@ public class ChasingLettersGameManager : MonoBehaviour
     public void RegisterTables(DeliverTablesManager deliverTablesManager)
     {
         tables = deliverTablesManager;
+    }
+
+    /// <summary>Mostra ou esconde o texto da palavra-alvo. Chamado pelo HintManager.</summary>
+    public void SetHintVisible(bool visible)
+    {
+        if (hintText != null) hintText.gameObject.SetActive(visible);
     }
 
     public bool IsPlayableWord(string word)

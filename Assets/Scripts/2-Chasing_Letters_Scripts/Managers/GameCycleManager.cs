@@ -8,8 +8,7 @@ using UnityEngine.SceneManagement;
 public enum GameStateCL { Start, Playing, Over }
 public class GameCycleManager : MonoBehaviour
 {
-    [SerializeField] ChasingLettersGameManager gameManager;
-    [SerializeField] DataCollectionManager dataCollectionManager;
+    public static GameCycleManager Instance { get; private set; }
 
     [Header("Game Loop")]
     public GameStateCL currentGameState = GameStateCL.Start;
@@ -29,6 +28,21 @@ public class GameCycleManager : MonoBehaviour
     public GameObject[] starsOutlineArray;
 
     private bool isStartingGame;
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     void Start()
     {
@@ -68,12 +82,12 @@ public void changeGameState(GameStateCL gameStateCL)
             foreach (GameObject star in starsArray) star.SetActive(false);
             foreach (GameObject starOutline in starsOutlineArray) starOutline.SetActive(true);
 
-            gameManager?.letterBoxesInstances?.ForEach(box => box?.SetActive(false));
-
-            if (dataCollectionManager != null && gameManager != null)
+            if (DataCollectionManager.Instance != null && ChasingLettersGameManager.Instance != null)
             {
-                dataCollectionManager.ReportSessionStarted(wordsToWin);
-                dataCollectionManager.StartNewWordAttempt(gameManager.targetWord, gameManager.CurrentChallengeId);
+                DataCollectionManager.Instance.ReportSessionStarted(wordsToWin);
+                DataCollectionManager.Instance.StartNewWordAttempt(
+                    ChasingLettersGameManager.Instance.targetWord,
+                    ChasingLettersGameManager.Instance.CurrentChallengeId);
             }
             break;
 
@@ -85,11 +99,11 @@ public void changeGameState(GameStateCL gameStateCL)
 
             navMeshAgent?.ResetPath();
 
-            dataCollectionManager?.ReportSessionFinished();
+            DataCollectionManager.Instance?.ReportSessionFinished();
 
             // O botão do painel de game over reinicia direto em Playing, sem passar por Start:
             // deixa a próxima palavra (e as mesas) prontas para essa nova partida.
-            gameManager?.SelectNewWord();
+            ChasingLettersGameManager.Instance?.SelectNewWord();
             break;
         }
     // Observer
@@ -128,13 +142,13 @@ public void changeGameState(GameStateCL gameStateCL)
         isStartingGame = true;
 
         float remaining = firstWordTimeout;
-        while (gameManager != null && !gameManager.IsWordReady && remaining > 0f)
+        while (ChasingLettersGameManager.Instance != null && !ChasingLettersGameManager.Instance.IsWordReady && remaining > 0f)
         {
             remaining -= Time.unscaledDeltaTime;
             yield return null;
         }
 
-        if (gameManager != null && !gameManager.IsWordReady)
+        if (ChasingLettersGameManager.Instance != null && !ChasingLettersGameManager.Instance.IsWordReady)
         {
             Debug.LogError("[GameCycleManager] Nenhuma palavra disponível — iniciando assim mesmo.");
         }

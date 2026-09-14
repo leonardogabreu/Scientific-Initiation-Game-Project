@@ -3374,7 +3374,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e35f432bd8f278a86840b05ec853194d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuController
-  nextSceneName: 2-Chasing_Letters
+  nextSceneName: Core
   mainMenuPanel: {fileID: 652791073}
   tutorialContainer: {fileID: 50442568}
   settingsMenu: {fileID: 849505488}

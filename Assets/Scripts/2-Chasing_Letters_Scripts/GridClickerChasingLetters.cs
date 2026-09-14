@@ -65,7 +65,7 @@ public class ChasingLettersGridClicker : MonoBehaviour
     {
         if (newState == GameStateCL.Start)
         {
-            if (cursorVisual != null && robotAgent != null)
+            if (cursorVisual != null && robotAgent != null && robotAgent.isOnNavMesh)
             {
                 cursorVisual.position = new Vector3(0, 0.1f, 0);
                 robotAgent.ResetPath();
