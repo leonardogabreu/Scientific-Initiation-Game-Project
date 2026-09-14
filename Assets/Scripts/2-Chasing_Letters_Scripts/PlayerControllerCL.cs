@@ -14,6 +14,9 @@ public class PlayerControllerCL : MonoBehaviour
 
     [Header("Managers")]
     [SerializeField] private InteractionEffectManager interactionEffectManager;
+    [Tooltip("Opcionais: se vazios, são resolvidos na cena. Usados para registrar a trajetória.")]
+    public DataCollectionManager dataCollectionManager;
+    public DeliverTablesManager deliverTablesManager;
 
     [Header("Interaction Prompt")]
     [SerializeField] private float promptCheckInterval = 0.1f;
@@ -27,6 +30,16 @@ public class PlayerControllerCL : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
+
+        if (dataCollectionManager == null)
+        {
+            dataCollectionManager = FindAnyObjectByType<DataCollectionManager>();
+        }
+
+        if (deliverTablesManager == null)
+        {
+            deliverTablesManager = FindAnyObjectByType<DeliverTablesManager>();
+        }
     }
 
     void Update()
@@ -102,11 +115,14 @@ public class PlayerControllerCL : MonoBehaviour
             case InteractableType.LetterBox:
                 if (!isCarrying)
                 {
-                    CarryLetterBox(interactionObject, true);
+                    string pickedFromBelt = CarryLetterBox(interactionObject, true);
+                    dataCollectionManager?.RegisterLetterPicked(pickedFromBelt, "belt", -1);
                 }
                 else
                 {
-                    SwapLetterBox(interactionObject);
+                    string handedToBelt = carriedLetterText != null ? carriedLetterText.text : null;
+                    string takenFromBelt = SwapLetterBox(interactionObject);
+                    dataCollectionManager?.RegisterLetterSwapped(takenFromBelt, handedToBelt, "belt", -1);
                 }
                 break;
 
@@ -115,23 +131,33 @@ public class PlayerControllerCL : MonoBehaviour
                 if (interactionObject.transform.childCount > 0)
                 {
                     GameObject tableLetter = interactionObject.transform.GetChild(0).gameObject;
+                    int slot = deliverTablesManager != null ? deliverTablesManager.GetSlotIndex(interactionObject) : -1;
 
                     if (isCarrying && tableLetter.activeInHierarchy)
                     {
-                        SwapLetterBox(tableLetter);
+                        string handedToTable = carriedLetterText != null ? carriedLetterText.text : null;
+                        string takenFromTable = SwapLetterBox(tableLetter);
+                        dataCollectionManager?.RegisterLetterSwapped(takenFromTable, handedToTable, "table", slot);
                     }
                     else if (isCarrying && !tableLetter.activeInHierarchy)
                     {
-                        DropLetterBox(interactionObject);
+                        string placed = DropLetterBox(interactionObject);
+                        dataCollectionManager?.RegisterLetterPlaced(placed, slot);
                     }
                     else if (!isCarrying && tableLetter.activeInHierarchy)
                     {
-                        CarryLetterBox(interactionObject, false);
+                        string pickedFromTable = CarryLetterBox(interactionObject, false);
+                        dataCollectionManager?.RegisterLetterPicked(pickedFromTable, "table", slot);
                     }
                 }
                 break;
 
             case InteractableType.Trash:
+                if (isCarrying && carriedLetterText != null)
+                {
+                    dataCollectionManager?.RegisterLetterDiscarded(carriedLetterText.text);
+                }
+
                 if (carriedLetter != null)
                 {
                     carriedLetter.SetActive(false);
@@ -162,9 +188,10 @@ public class PlayerControllerCL : MonoBehaviour
         }
     }
 
-    public void CarryLetterBox(GameObject targetObj, bool isFromSpawner)
+    /// <summary>Pega a letra e devolve qual foi, ou null se não havia o que pegar.</summary>
+    public string CarryLetterBox(GameObject targetObj, bool isFromSpawner)
     {
-        if (carriedLetter == null || carriedLetterText == null) return;
+        if (carriedLetter == null || carriedLetterText == null) return null;
 
         GameObject targetBox = null;
 
@@ -177,7 +204,7 @@ public class PlayerControllerCL : MonoBehaviour
             targetBox = targetObj.transform.GetChild(0).gameObject;
         }
 
-        if (targetBox == null) return;
+        if (targetBox == null) return null;
 
         InteractableCL targetInteractable = targetBox.GetComponent<InteractableCL>();
         TMP_Text targetBoxText = targetInteractable != null ? targetInteractable.LetterText : null;
@@ -195,27 +222,34 @@ public class PlayerControllerCL : MonoBehaviour
         {
             animator.SetBool("IsCarrying", true);
         }
+
+        return carriedLetterText.text;
     }
 
-    public void SwapLetterBox(GameObject targetObj)
+    /// <summary>Troca a letra carregada pela do alvo e devolve a que o aluno passou a carregar,
+    /// ou null se não deu para trocar.</summary>
+    public string SwapLetterBox(GameObject targetObj)
     {
-        if (carriedLetter == null || carriedLetterText == null) return;
+        if (carriedLetter == null || carriedLetterText == null) return null;
 
         InteractableCL targetInteractable = targetObj.GetComponent<InteractableCL>();
         TMP_Text targetBoxText = targetInteractable != null ? targetInteractable.LetterText : null;
-        if (targetBoxText == null) return;
+        if (targetBoxText == null) return null;
 
         string previousCarriedLetter = carriedLetterText.text;
         carriedLetterText.text = targetBoxText.text;
         targetBoxText.text = previousCarriedLetter;
+
+        return carriedLetterText.text;
     }
 
-    public void DropLetterBox(GameObject targetObj)
+    /// <summary>Larga a letra na mesa e devolve qual foi, ou null se não deu para largar.</summary>
+    public string DropLetterBox(GameObject targetObj)
     {
-        if (targetObj.transform.childCount == 0) return;
+        if (targetObj.transform.childCount == 0) return null;
 
         GameObject interactionLetter = targetObj.transform.GetChild(0).gameObject;
-        if (interactionLetter == null) return;
+        if (interactionLetter == null) return null;
 
         InteractableCL interactableCL = interactionLetter.GetComponent<InteractableCL>();
         TMP_Text interactionLetterText = interactableCL != null ? interactableCL.LetterText : null;
@@ -225,11 +259,17 @@ public class PlayerControllerCL : MonoBehaviour
             interactionLetterText.text = carriedLetterText.text;
         }
 
+        string droppedLetter = carriedLetterText != null ? carriedLetterText.text : null;
+
         interactionLetter.SetActive(true);
         carriedLetter.SetActive(false);
         isCarrying = false;
 
-        if (animator == null) return;
-        animator.SetBool("IsCarrying", false);
+        if (animator != null)
+        {
+            animator.SetBool("IsCarrying", false);
+        }
+
+        return droppedLetter;
     }
 }

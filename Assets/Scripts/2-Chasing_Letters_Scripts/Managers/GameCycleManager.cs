@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
@@ -12,6 +13,8 @@ public class GameCycleManager : MonoBehaviour
     [Header("Game Loop")]
     public GameStateCL currentGameState = GameStateCL.Start;
     [SerializeField] private int wordsToWin = 3;
+    [Tooltip("Segundos de espera pela primeira palavra da plataforma antes de começar assim mesmo.")]
+    [SerializeField] private float firstWordTimeout = 20f;
     private int correctWords = 0;
     public event Action<GameStateCL> onGameStateChanged;
 
@@ -24,6 +27,7 @@ public class GameCycleManager : MonoBehaviour
     public GameObject[] starsArray;
     public GameObject[] starsOutlineArray;
 
+    private bool isStartingGame;
 
     void Awake()
     {
@@ -78,9 +82,12 @@ public void changeGameState(GameStateCL gameStateCL)
             foreach (GameObject star in starsArray) star.SetActive(false);
             foreach (GameObject starOutline in starsOutlineArray) starOutline.SetActive(true);
 
-            if (DataCollectionManager.Instance != null)
+            if (DataCollectionManager.Instance != null && ChasingLettersGameManager.Instance != null)
             {
-                DataCollectionManager.Instance.StartNewWordAttempt(WordSelectionManager.Instance?.TargetWord ?? "");
+                DataCollectionManager.Instance.ReportSessionStarted(wordsToWin);
+                DataCollectionManager.Instance.StartNewWordAttempt(
+                    ChasingLettersGameManager.Instance.targetWord,
+                    ChasingLettersGameManager.Instance.CurrentChallengeId);
             }
             break;
 
@@ -89,8 +96,14 @@ public void changeGameState(GameStateCL gameStateCL)
             startPanel.SetActive(false);
             playingPanel.SetActive(false);
             gameOverPanel.SetActive(true);
-            
+
             navMeshAgent?.ResetPath();
+
+            DataCollectionManager.Instance?.ReportSessionFinished();
+
+            // O botão do painel de game over reinicia direto em Playing, sem passar por Start:
+            // deixa a próxima palavra (e as mesas) prontas para essa nova partida.
+            ChasingLettersGameManager.Instance?.SelectNewWord();
             break;
         }
     // Observer
@@ -114,7 +127,33 @@ public void changeGameState(GameStateCL gameStateCL)
 
     }
 
-    public void StartGameFromButton(){
+    public void StartGameFromButton()
+    {
+        if (isStartingGame) return;
+
+        StartCoroutine(StartGameWhenWordIsReady());
+    }
+
+    // A primeira palavra é buscada na plataforma já no Start da cena, mas se a rede estiver
+    // lenta o painel inicial continua na tela até ela chegar — começar sem palavra deixaria a
+    // esteira sem letras certas e as mesas vazias.
+    private IEnumerator StartGameWhenWordIsReady()
+    {
+        isStartingGame = true;
+
+        float remaining = firstWordTimeout;
+        while (ChasingLettersGameManager.Instance != null && !ChasingLettersGameManager.Instance.IsWordReady && remaining > 0f)
+        {
+            remaining -= Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (ChasingLettersGameManager.Instance != null && !ChasingLettersGameManager.Instance.IsWordReady)
+        {
+            Debug.LogError("[GameCycleManager] Nenhuma palavra disponível — iniciando assim mesmo.");
+        }
+
+        isStartingGame = false;
         changeGameState(GameStateCL.Playing);
     }
 

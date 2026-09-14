@@ -9,7 +9,6 @@ public class HintManager : MonoBehaviour
     [Header("Hint Manager")]
     [SerializeField] private float hintCooldown = 20.0f;
     [SerializeField] private float hintShowTime = 10.0f;
-
     private bool canGiveHint = true;
 
     public event Action<bool> onHintVisibilityChanged;
@@ -32,6 +31,10 @@ public class HintManager : MonoBehaviour
     public void ShowHint()
     {
         if (!canGiveHint) return;
+
+        // Quantas dicas o aluno precisou é um dado da pesquisa tão relevante quanto os erros.
+        DataCollectionManager.Instance?.RegisterHint();
+
         StartCoroutine(HintRoutine());
     }
 
@@ -59,6 +62,8 @@ public class HintManager : MonoBehaviour
         {
             GameCycleManager.Instance.onGameStateChanged += HandleStateChange;
         }
+
+        onHintVisibilityChanged += HandleHintVisibilityChanged;
     }
 
     void OnDisable()
@@ -67,6 +72,13 @@ public class HintManager : MonoBehaviour
         {
             GameCycleManager.Instance.onGameStateChanged -= HandleStateChange;
         }
+
+        onHintVisibilityChanged -= HandleHintVisibilityChanged;
+    }
+
+    private void HandleHintVisibilityChanged(bool visible)
+    {
+        ChasingLettersGameManager.Instance?.SetHintVisible(visible);
     }
 
     private void HandleStateChange(GameStateCL newState)

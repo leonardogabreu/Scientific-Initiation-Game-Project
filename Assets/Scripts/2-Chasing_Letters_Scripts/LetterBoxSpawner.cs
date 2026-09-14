@@ -4,10 +4,7 @@ using System.Collections.Generic;
 
 public class LetterBoxSpawner : MonoBehaviour
 {
-    [Header("Game Managers")] 
-    [SerializeField] private LetterBoxPool letterBoxPool;
-
-    [Header("Letter rotation parameters")] 
+    [Header("Letter rotation parameters")]
     [SerializeField] private bool isALeftSpawner;
     private int letterRotationFixingConst;
     private const float LetterHeightOffset = 0.51f;
@@ -24,7 +21,6 @@ public class LetterBoxSpawner : MonoBehaviour
     [SerializeField] private int correctLetterChance = 70;
     private List<char> currentWordLettersList = new List<char>();
     private string lastTrackedWord = "";
-    private string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZÇÁÉÍÓÚÂÊÔÃÕ";
 
     void Start()
     {
@@ -49,7 +45,7 @@ public class LetterBoxSpawner : MonoBehaviour
 
             if (timeCounter >= spawnTimer && currentWordLettersList != null)
             {
-                GameObject letter = letterBoxPool.GetLetterBoxInstance();
+                GameObject letter = ChasingLettersGameManager.Instance.GetLetterBoxInstance();
 
                 if (letter != null){   
                     letter.transform.localPosition = transform.position;
@@ -83,7 +79,7 @@ public class LetterBoxSpawner : MonoBehaviour
     private string GetWeightedRandomLetter()
     {
         int roll = Random.Range(0, 100);
-        string currentWord = WordSelectionManager.Instance?.TargetWord; 
+        string currentWord = ChasingLettersGameManager.Instance?.targetWord;
 
         // If the roll is within the percentage and the word is valid, pick a letter from the target word
         if (roll < correctLetterChance && !string.IsNullOrEmpty(currentWord) && currentWordLettersList != null)
@@ -104,8 +100,8 @@ public class LetterBoxSpawner : MonoBehaviour
         else 
         {
             // Pick a completely random letter from the alphabet array
-            int randomIndex = Random.Range(0, alphabet.Length);
-            return alphabet[randomIndex].ToString();
+            int randomIndex = Random.Range(0, ChasingLettersGameManager.Alphabet.Length);
+            return ChasingLettersGameManager.Alphabet[randomIndex].ToString();
         }
     }
 
@@ -116,6 +112,11 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             GameCycleManager.Instance.onGameStateChanged += HandleStateChange;
         }
+
+        if (ChasingLettersGameManager.Instance != null)
+        {
+            ChasingLettersGameManager.Instance.onWordChanged += HandleWordChanged;
+        }
     }
 
     void OnDisable()
@@ -124,6 +125,19 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             GameCycleManager.Instance.onGameStateChanged -= HandleStateChange;
         }
+
+        if (ChasingLettersGameManager.Instance != null)
+        {
+            ChasingLettersGameManager.Instance.onWordChanged -= HandleWordChanged;
+        }
+    }
+
+    // A palavra chega da plataforma depois do Start, então a lista de letras da rodada é
+    // remontada no evento em vez de uma única vez na carga da cena.
+    private void HandleWordChanged()
+    {
+        lastTrackedWord = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.targetWord : "";
+        FillCurrentWordLettersList();
     }
 
     private void HandleStateChange(GameStateCL newState)
@@ -137,12 +151,12 @@ public class LetterBoxSpawner : MonoBehaviour
 
     private void FillCurrentWordLettersList()
     {
-        if (currentWordLettersList != null && WordSelectionManager.Instance != null && WordSelectionManager.Instance.TargetWord != null)
+        if (currentWordLettersList != null && ChasingLettersGameManager.Instance != null && ChasingLettersGameManager.Instance.targetWord != null)
         {
             currentWordLettersList.Clear();
-            for (int i = 0; i < WordSelectionManager.Instance.TargetWord.Length; i++) 
+            for (int i = 0; i < ChasingLettersGameManager.Instance.targetWord.Length; i++)
             {
-                currentWordLettersList.Add(WordSelectionManager.Instance.TargetWord[i]);
+                currentWordLettersList.Add(ChasingLettersGameManager.Instance.targetWord[i]);
             }
         }
     }

@@ -829,6 +829,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameCycleManager
   currentGameState: 0
   wordsToWin: 3
+  firstWordTimeout: 20
   navMeshAgent: {fileID: 680293289}
   startPanel: {fileID: 787700681}
   playingPanel: {fileID: 778106378}
@@ -1770,6 +1771,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   interactionEffectManager: {fileID: 788041896}
+  dataCollectionManager: {fileID: 0}
+  deliverTablesManager: {fileID: 0}
   promptCheckInterval: 0.1
 --- !u!195 &680293289 stripped
 NavMeshAgent:
@@ -1811,7 +1814,6 @@ Transform:
   - {fileID: 1689919515}
   - {fileID: 788041895}
   - {fileID: 2019970527}
-  - {fileID: 1120824754}
   - {fileID: 1257405892}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2864,50 +2866,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1024438765}
   m_CullTransparentMesh: 1
---- !u!1 &1120824753
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1120824754}
-  - component: {fileID: 1120824755}
-  m_Layer: 0
-  m_Name: WordSelectionManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1120824754
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1120824753}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 697502983}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1120824755
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1120824753}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03fd5bdc37891a82085b06ed72c7b876, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WordSelectionManager
 --- !u!1 &1187183377
 GameObject:
   m_ObjectHideFlags: 0
@@ -3012,7 +2970,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90b63933268e5a09eb10c2ab0cfc6968, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DataCollectionManager
-  backendUrl: https://adapt2learn-895112363610.us-central1.run.app/api/events/game
 --- !u!4 &1232340104
 Transform:
   m_ObjectHideFlags: 0
@@ -3993,7 +3950,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d0275232ffce1eda98608dcd0d13386, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChasingLettersApiManager
-  baseUrl: https://adapt2learn-895112363610.us-central1.run.app
+  maxFetchAttempts: 4
+  firstFetchAuthTimeout: 10
 --- !u!1 &1816450311
 GameObject:
   m_ObjectHideFlags: 0
