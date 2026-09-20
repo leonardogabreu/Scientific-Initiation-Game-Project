@@ -25,11 +25,13 @@ public class PlayerControllerCL : MonoBehaviour
     [Header("Animator")]
     private Animator animator;
     private NavMeshAgent agent;
+    private Vector3 lastPosition;
 
     void Start()
     {
         animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
+        lastPosition = transform.position;
 
         if (dataCollectionManager == null)
         {
@@ -44,10 +46,13 @@ public class PlayerControllerCL : MonoBehaviour
 
     void Update()
     {
-        if (animator != null && agent != null)
+        // agent.velocity fica zerado quando o movimento vem de NavMeshAgent.Move (modo setas),
+        // então a velocidade da animação é medida pelo deslocamento real.
+        if (animator != null && Time.deltaTime > 0f)
         {
-            animator.SetFloat("Speed", agent.velocity.magnitude);
+            animator.SetFloat("Speed", (transform.position - lastPosition).magnitude / Time.deltaTime);
         }
+        lastPosition = transform.position;
 
         if (Input.GetKeyDown(KeyCode.Space) && GameCycleManager.Instance != null && GameCycleManager.Instance.currentGameState == GameStateCL.Playing)
         {
