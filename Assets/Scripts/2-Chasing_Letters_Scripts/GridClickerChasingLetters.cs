@@ -38,8 +38,6 @@ public class ChasingLettersGridClicker : MonoBehaviour
         }
     }
 
-    // Setas movem o agente continuamente (o grid é pequeno demais para andar casa a casa).
-    // Move respeita o NavMesh, então o personagem não sai do chão andável.
     void DetectKeyboardAndMove()
     {
         if (robotAgent == null || !robotAgent.isOnNavMesh) return;
