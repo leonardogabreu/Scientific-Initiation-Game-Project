@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: LONTRA
   wordImage: {fileID: 21300000, guid: 4211dd95adbf42c49832e25a882d4a83, type: 3}
+  difficulty: 1

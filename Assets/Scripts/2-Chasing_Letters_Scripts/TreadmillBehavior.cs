@@ -2,16 +2,44 @@ using UnityEngine;
 
 public class TreadmillBehavior : MonoBehaviour
 {
-    public float treadmillSpeed = 5f;
+    private const float BaselineProfileSpeed = 5f;
+
+    private float baseSpeed = 5f;
+    private float difficultyMultiplier = 1f; // Por enquanto, está como um multiplicador por conta da opção normal/reduzida no menu
+
     void Start()
     {
-        treadmillSpeed = PlayerPrefs.GetFloat("treadmillSpeed", 5f);
+        baseSpeed = PlayerPrefs.GetFloat("treadmillSpeed", BaselineProfileSpeed);
     }
+
+    void OnEnable()
+    {
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged += ApplyDifficultyProfile;
+            ApplyDifficultyProfile(DifficultyManager.Instance.CurrentProfile);
+        }
+    }
+
+    void OnDisable()
+    {
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged -= ApplyDifficultyProfile;
+        }
+    }
+
     void OnCollisionStay(Collision collision)
     {
         if (collision.gameObject.CompareTag("LetterBox"))
         {
-            collision.gameObject.transform.Translate(Vector3.forward * Time.deltaTime * treadmillSpeed);
+            float effectiveSpeed = baseSpeed * difficultyMultiplier;
+            collision.gameObject.transform.Translate(Vector3.forward * Time.deltaTime * effectiveSpeed);
         }
+    }
+
+    private void ApplyDifficultyProfile(DifficultyProfile profile)
+    {
+        difficultyMultiplier = profile.treadmillSpeed / BaselineProfileSpeed;
     }
 }

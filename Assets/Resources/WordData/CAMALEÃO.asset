@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: "CAMALE\xC3O"
   wordImage: {fileID: 21300000, guid: f303a3fccc703dd4ba013a0f79f8e926, type: 3}
+  difficulty: 2

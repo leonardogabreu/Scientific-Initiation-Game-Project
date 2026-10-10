@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: RAPOSA
   wordImage: {fileID: 21300000, guid: f62940e9511461f1fa5dee481a08eacb, type: 3}
+  difficulty: 1

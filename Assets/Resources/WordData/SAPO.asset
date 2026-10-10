@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: SAPO
   wordImage: {fileID: 21300000, guid: 1bae3860d9d103ba9b4e38950acc0e19, type: 3}
+  difficulty: 0

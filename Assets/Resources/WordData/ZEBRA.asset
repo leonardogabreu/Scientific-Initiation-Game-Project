@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: ZEBRA
   wordImage: {fileID: 21300000, guid: e58e78a3874fbcec9ab4e6beb425d8fe, type: 3}
+  difficulty: 1

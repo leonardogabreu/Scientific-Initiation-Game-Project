@@ -42,6 +42,32 @@ public class PlayerControllerCL : MonoBehaviour
         {
             deliverTablesManager = FindAnyObjectByType<DeliverTablesManager>();
         }
+
+        if (DifficultyManager.Instance != null)
+        {
+            ApplyDifficultyProfile(DifficultyManager.Instance.CurrentProfile);
+        }
+    }
+
+    void OnEnable()
+    {
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged += ApplyDifficultyProfile;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged -= ApplyDifficultyProfile;
+        }
+    }
+
+    private void ApplyDifficultyProfile(DifficultyProfile profile)
+    {
+        if (agent != null) agent.speed = profile.playerSpeed;
     }
 
     void Update()
@@ -193,7 +219,6 @@ public class PlayerControllerCL : MonoBehaviour
         }
     }
 
-    /// <summary>Pega a letra e devolve qual foi, ou null se não havia o que pegar.</summary>
     public string CarryLetterBox(GameObject targetObj, bool isFromSpawner)
     {
         if (carriedLetter == null || carriedLetterText == null) return null;
@@ -231,8 +256,6 @@ public class PlayerControllerCL : MonoBehaviour
         return carriedLetterText.text;
     }
 
-    /// <summary>Troca a letra carregada pela do alvo e devolve a que o aluno passou a carregar,
-    /// ou null se não deu para trocar.</summary>
     public string SwapLetterBox(GameObject targetObj)
     {
         if (carriedLetter == null || carriedLetterText == null) return null;
@@ -248,7 +271,6 @@ public class PlayerControllerCL : MonoBehaviour
         return carriedLetterText.text;
     }
 
-    /// <summary>Larga a letra na mesa e devolve qual foi, ou null se não deu para largar.</summary>
     public string DropLetterBox(GameObject targetObj)
     {
         if (targetObj.transform.childCount == 0) return null;

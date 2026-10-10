@@ -10,16 +10,14 @@ public class ApiWordResponse
     public string challenge_id;
     public string word;
     public string image_url;
-    // O endpoint também devolve "puzzle" (letras embaralhadas e slots), que este jogo não usa:
-    // aqui as letras chegam pela esteira, sorteadas pelo LetterBoxSpawner.
 }
 
-/// <summary>Um desafio palavra–imagem pronto para virar rodada.</summary>
 public class WordChallenge
 {
     public string challengeId;
     public string word;
     public Sprite image;
+    public WordDifficulty difficulty;
 }
 
 /// <summary>
@@ -80,12 +78,12 @@ public class ChasingLettersApiManager : MonoBehaviour
     /// Entrega um desafio que passe em <paramref name="isPlayable"/>, ou null se a plataforma
     /// não puder fornecer um. Nunca bloqueia o jogo: a resposta chega pelo callback.
     /// </summary>
-    public void RequestWord(Func<string, bool> isPlayable, Action<WordChallenge> onReady)
+    public void RequestWord(Func<string, bool> isPlayable, WordDifficulty? targetDifficulty, Action<WordChallenge> onReady)
     {
-        StartCoroutine(RequestWordRoutine(isPlayable, onReady));
+        StartCoroutine(RequestWordRoutine(isPlayable, targetDifficulty, onReady));
     }
 
-    private IEnumerator RequestWordRoutine(Func<string, bool> isPlayable, Action<WordChallenge> onReady)
+    private IEnumerator RequestWordRoutine(Func<string, bool> isPlayable, WordDifficulty? targetDifficulty, Action<WordChallenge> onReady)
     {
         if (prefetched != null && IsUsable(prefetched, isPlayable))
         {
@@ -93,7 +91,7 @@ public class ChasingLettersApiManager : MonoBehaviour
             prefetched = null;
 
             Deliver(ready, onReady);
-            StartPrefetch(isPlayable);
+            StartPrefetch(isPlayable, targetDifficulty);
             yield break;
         }
 
@@ -106,7 +104,7 @@ public class ChasingLettersApiManager : MonoBehaviour
         }
 
         WordChallenge fetched = null;
-        yield return FetchUsableChallenge(isPlayable, result => fetched = result);
+        yield return FetchUsableChallenge(isPlayable, targetDifficulty, result => fetched = result);
 
         if (fetched == null)
         {
@@ -115,7 +113,7 @@ public class ChasingLettersApiManager : MonoBehaviour
         }
 
         Deliver(fetched, onReady);
-        StartPrefetch(isPlayable);
+        StartPrefetch(isPlayable, targetDifficulty);
     }
 
     private void Deliver(WordChallenge challenge, Action<WordChallenge> onReady)
@@ -124,22 +122,22 @@ public class ChasingLettersApiManager : MonoBehaviour
         onReady?.Invoke(challenge);
     }
 
-    private void StartPrefetch(Func<string, bool> isPlayable)
+    private void StartPrefetch(Func<string, bool> isPlayable, WordDifficulty? targetDifficulty)
     {
         if (isPrefetching || prefetched != null) return;
 
-        StartCoroutine(PrefetchRoutine(isPlayable));
+        StartCoroutine(PrefetchRoutine(isPlayable, targetDifficulty));
     }
 
     // Adianta a próxima palavra enquanto o aluno joga a atual, para a troca de rodada ser imediata.
-    private IEnumerator PrefetchRoutine(Func<string, bool> isPlayable)
+    private IEnumerator PrefetchRoutine(Func<string, bool> isPlayable, WordDifficulty? targetDifficulty)
     {
         isPrefetching = true;
-        yield return FetchUsableChallenge(isPlayable, result => prefetched = result);
+        yield return FetchUsableChallenge(isPlayable, targetDifficulty, result => prefetched = result);
         isPrefetching = false;
     }
 
-    private IEnumerator FetchUsableChallenge(Func<string, bool> isPlayable, Action<WordChallenge> onDone)
+    private IEnumerator FetchUsableChallenge(Func<string, bool> isPlayable, WordDifficulty? targetDifficulty, Action<WordChallenge> onDone)
     {
         WebGLManager session = WebGLManager.Instance;
 
@@ -154,6 +152,9 @@ public class ChasingLettersApiManager : MonoBehaviour
             $"?school_id={UnityWebRequest.EscapeURL(session.SchoolId)}" +
             $"&discipline={UnityWebRequest.EscapeURL(session.Discipline)}" +
             $"&subarea={UnityWebRequest.EscapeURL(session.Subarea)}";
+
+        WordChallenge fallbackCandidate = null;
+        string fallbackImageUrl = null;
 
         for (int attempt = 1; attempt <= maxFetchAttempts; attempt++)
         {
@@ -186,12 +187,32 @@ public class ChasingLettersApiManager : MonoBehaviour
             WordChallenge challenge = new WordChallenge
             {
                 challengeId = parsed.challenge_id,
-                word = word
+                word = word,
+                difficulty = WordDifficultyClassifier.Classify(word)
             };
 
-            yield return LoadImage(parsed.image_url, sprite => challenge.image = sprite);
+            bool matchesDifficulty = !targetDifficulty.HasValue || challenge.difficulty == targetDifficulty.Value;
 
-            onDone(challenge);
+            if (matchesDifficulty)
+            {
+                yield return LoadImage(parsed.image_url, sprite => challenge.image = sprite);
+                onDone(challenge);
+                yield break;
+            }
+
+            // Guarda a primeira jogável fora do nível pedido como plano B: melhor jogar com uma
+            // palavra fora da dificuldade atual do que não ter palavra nenhuma.
+            if (fallbackCandidate == null)
+            {
+                fallbackCandidate = challenge;
+                fallbackImageUrl = parsed.image_url;
+            }
+        }
+
+        if (fallbackCandidate != null)
+        {
+            yield return LoadImage(fallbackImageUrl, sprite => fallbackCandidate.image = sprite);
+            onDone(fallbackCandidate);
             yield break;
         }
 

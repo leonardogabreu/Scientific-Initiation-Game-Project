@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: TATU
   wordImage: {fileID: 21300000, guid: 1473cc4499e01286c96a3cf59f8cb9ca, type: 3}
+  difficulty: 0

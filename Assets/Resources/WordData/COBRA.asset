@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: COBRA
   wordImage: {fileID: 21300000, guid: 9298a128ec4f33d8c801c59350fece24, type: 3}
+  difficulty: 1

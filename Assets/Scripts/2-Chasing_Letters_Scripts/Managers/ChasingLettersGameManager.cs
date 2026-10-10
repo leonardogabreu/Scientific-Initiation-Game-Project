@@ -51,8 +51,12 @@ public class ChasingLettersGameManager : MonoBehaviour
 
         Instance = this;
 
-        // A palavra só aparece quando o HintManager libera: fora disso o texto fica oculto.
         hintText?.gameObject.SetActive(false);
+
+        if (DifficultyManager.Instance != null)
+        {
+            numberOfInstances = DifficultyManager.Instance.CurrentProfile.letterPoolSize;
+        }
 
         // Populate the object pool at the start of the game
         for(int i = 0; i < numberOfInstances; i++)
@@ -77,8 +81,6 @@ public class ChasingLettersGameManager : MonoBehaviour
 
     void Start()
     {
-        // Busca a primeira palavra enquanto o painel inicial está na tela, para o aluno nunca
-        // esperar pela rede depois de apertar "jogar".
         SelectNewWord();
     }
 
@@ -88,16 +90,11 @@ public class ChasingLettersGameManager : MonoBehaviour
         return letterBoxesInstances.FirstOrDefault(box => box != null && !box.activeInHierarchy);
     }
 
-    /// <summary>
-    /// O DeliverTablesManager se registra aqui no Start para que a escolha de palavra já
-    /// descarte palavras que não cabem nas mesas disponíveis.
-    /// </summary>
     public void RegisterTables(DeliverTablesManager deliverTablesManager)
     {
         tables = deliverTablesManager;
     }
 
-    /// <summary>Mostra ou esconde o texto da palavra-alvo. Chamado pelo HintManager.</summary>
     public void SetHintVisible(bool visible)
     {
         if (hintText != null) hintText.gameObject.SetActive(visible);
@@ -110,10 +107,6 @@ public class ChasingLettersGameManager : MonoBehaviour
         return tables == null || tables.CanFitWord(word.Length);
     }
 
-    /// <summary>
-    /// Pede a próxima palavra à plataforma e cai no banco local se ela não puder fornecer.
-    /// Assíncrono: <paramref name="onReady"/> roda quando targetWord já está válido.
-    /// </summary>
     public void SelectNewWord(Action onReady = null)
     {
         IsWordReady = false;
@@ -127,7 +120,9 @@ public class ChasingLettersGameManager : MonoBehaviour
             return;
         }
 
-        provider.RequestWord(IsPlayableWord, challenge =>
+        WordDifficulty? targetDifficulty = DifficultyManager.Instance != null ? DifficultyManager.Instance.CurrentProfile.wordDifficulty : null;
+
+        provider.RequestWord(IsPlayableWord, targetDifficulty, challenge =>
         {
             if (challenge != null)
             {
@@ -175,32 +170,60 @@ public class ChasingLettersGameManager : MonoBehaviour
 
         if (availableWords.Count == 0) refillAvailableWords();
 
-        // Avoids repetition of words
-        for (int i = availableWords.Count - 1; i >= 0; i--)
+        WordDifficulty? targetDifficulty = DifficultyManager.Instance != null ? DifficultyManager.Instance.CurrentProfile.wordDifficulty: null;
+
+        WordData selectedData = SelectAndRemoveWord(targetDifficulty) ?? SelectAndRemoveWord(null);
+
+        if (selectedData == null)
         {
-            int randomIndex = UnityEngine.Random.Range(0, availableWords.Count);
-            WordData selectedData = levelWords[availableWords[randomIndex]];
-
-            availableWords.RemoveAt(randomIndex);   // Removes the word selected from the available words list
-
-            if (selectedData == null || !IsPlayableWord(selectedData.targetWord)) continue;
-
-            targetWord = selectedData.targetWord.ToUpperInvariant();
-
-            if (currentWordImageUI != null && selectedData.wordImage != null)
-            {
-                currentWordImageUI.sprite = selectedData.wordImage;
-            }
-
-            if (hintText != null)
-            {
-                hintText.text = targetWord;
-            }
-
+            Debug.LogError("[ChasingLettersGameManager] Nenhuma palavra local cabe nas mesas disponíveis.");
             return;
         }
 
-        Debug.LogError("[ChasingLettersGameManager] Nenhuma palavra local cabe nas mesas disponíveis.");
+        targetWord = selectedData.targetWord.ToUpperInvariant();
+
+        if (currentWordImageUI != null && selectedData.wordImage != null)
+        {
+            currentWordImageUI.sprite = selectedData.wordImage;
+        }
+
+        if (hintText != null)
+        {
+            hintText.text = targetWord;
+        }
+    }
+
+    // Percorre as palavras disponíveis em ordem aleatória. Palavras que não cabem nas mesas são descartadas
+    private WordData SelectAndRemoveWord(WordDifficulty? targetDifficulty)
+    {
+        List<int> skipped = new List<int>();
+
+        while (availableWords.Count > 0)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, availableWords.Count);
+            int wordIndex = availableWords[randomIndex];
+            WordData candidate = levelWords[wordIndex];
+
+            if (candidate == null || !IsPlayableWord(candidate.targetWord))
+            {
+                availableWords.RemoveAt(randomIndex);
+                continue;
+            }
+
+            if (targetDifficulty.HasValue && candidate.difficulty != targetDifficulty.Value)
+            {
+                availableWords.RemoveAt(randomIndex);
+                skipped.Add(wordIndex);
+                continue;
+            }
+
+            availableWords.RemoveAt(randomIndex);
+            availableWords.AddRange(skipped);
+            return candidate;
+        }
+
+        availableWords.AddRange(skipped);
+        return null;
     }
 
     public void refillAvailableWords()

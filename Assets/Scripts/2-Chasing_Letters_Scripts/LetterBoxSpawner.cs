@@ -117,6 +117,12 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             ChasingLettersGameManager.Instance.onWordChanged += HandleWordChanged;
         }
+
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged += ApplyDifficultyProfile;
+            ApplyDifficultyProfile(DifficultyManager.Instance.CurrentProfile);
+        }
     }
 
     void OnDisable()
@@ -130,10 +136,19 @@ public class LetterBoxSpawner : MonoBehaviour
         {
             ChasingLettersGameManager.Instance.onWordChanged -= HandleWordChanged;
         }
+
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged -= ApplyDifficultyProfile;
+        }
     }
 
-    // A palavra chega da plataforma depois do Start, então a lista de letras da rodada é
-    // remontada no evento em vez de uma única vez na carga da cena.
+    private void ApplyDifficultyProfile(DifficultyProfile profile)
+    {
+        correctLetterChance = profile.correctLetterChance;
+        minSpawnTime = profile.minSpawnTime;
+        maxSpawnTime = profile.maxSpawnTime;
+    }
     private void HandleWordChanged()
     {
         lastTrackedWord = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.targetWord : "";

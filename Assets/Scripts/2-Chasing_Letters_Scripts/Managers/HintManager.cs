@@ -32,7 +32,6 @@ public class HintManager : MonoBehaviour
     {
         if (!canGiveHint) return;
 
-        // Quantas dicas o aluno precisou é um dado da pesquisa tão relevante quanto os erros.
         DataCollectionManager.Instance?.RegisterHint();
 
         StartCoroutine(HintRoutine());
@@ -64,6 +63,12 @@ public class HintManager : MonoBehaviour
         }
 
         onHintVisibilityChanged += HandleHintVisibilityChanged;
+
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged += ApplyDifficultyProfile;
+            ApplyDifficultyProfile(DifficultyManager.Instance.CurrentProfile);
+        }
     }
 
     void OnDisable()
@@ -74,6 +79,17 @@ public class HintManager : MonoBehaviour
         }
 
         onHintVisibilityChanged -= HandleHintVisibilityChanged;
+
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged -= ApplyDifficultyProfile;
+        }
+    }
+
+    private void ApplyDifficultyProfile(DifficultyProfile profile)
+    {
+        hintShowTime = profile.hintShowTime;
+        hintCooldown = profile.hintCooldown;
     }
 
     private void HandleHintVisibilityChanged(bool visible)

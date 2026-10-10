@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: LOBO
   wordImage: {fileID: 21300000, guid: 14b58cc88cd428705aa103966d241079, type: 3}
+  difficulty: 0
