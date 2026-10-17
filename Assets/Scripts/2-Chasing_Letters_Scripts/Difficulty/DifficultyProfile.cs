@@ -16,7 +16,7 @@ public class DifficultyProfile : ScriptableObject
     public float treadmillSpeed = 5f;
     // player control
     [Header("PlayerController")]
-    public float playerSpeed = 3.5f;
+    public float playerSpeed = 18f;
 
     [Header("Hint Display")]
     public float hintShowTime = 10f;

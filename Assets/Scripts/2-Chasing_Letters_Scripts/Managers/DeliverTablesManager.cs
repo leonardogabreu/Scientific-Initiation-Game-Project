@@ -10,8 +10,6 @@ public class DeliverTablesManager : MonoBehaviour
 
     void Awake()
     {
-        // Antes de qualquer Start: a escolha de palavra precisa saber quantas mesas existem
-        // para descartar palavras da plataforma que não caberiam.
         FillTablesLists();
         ResetAllTables();
 
@@ -34,8 +32,6 @@ public class DeliverTablesManager : MonoBehaviour
         }
     }
 
-    // As mesas só são montadas quando a palavra da rodada existe de fato. Montar antes disso
-    // deixava o número de mesas fora de sincronia com a palavra que chegava da API depois.
     private void HandleWordChanged()
     {
         ResetAllTables();
@@ -164,6 +160,41 @@ public class DeliverTablesManager : MonoBehaviour
         }
 
         return builtWord.ToUpper();
+    }
+
+    public bool IsLetterUsefull(InteractableCL letter, PlayerControllerCL pc)
+    {
+        if (letter == null) return false;
+
+        string letterText = letter.LetterText.text;
+        char letterChar = letterText[0];
+        string targetWord = ChasingLettersGameManager.Instance.targetWord;
+        string builtWord = GetBuiltWord();
+
+        int countTarget = 0;
+        foreach (char c in targetWord)
+        {
+            if (c == letterChar)
+                countTarget++;
+        }
+
+        int countBuilt = 0;
+        foreach (char c in builtWord)
+        {
+            if (c == letterChar)
+                countBuilt++;
+        }
+
+        if(pc.carriedLetter == null || !pc.carriedLetter.activeInHierarchy) return countBuilt < countTarget;
+
+        string heldLetter = pc.carriedLetterText.text;
+
+        if(string.IsNullOrEmpty(heldLetter)) return countBuilt < countTarget;
+
+        char heldChar = heldLetter[0];
+
+        if(heldChar == letterChar) return countBuilt + 1 < countTarget;
+        return countBuilt < countTarget;
     }
 
     public bool CheckSubmit()

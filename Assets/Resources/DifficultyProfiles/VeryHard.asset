@@ -17,7 +17,7 @@ MonoBehaviour:
   maxSpawnTime: 5
   letterPoolSize: 20
   treadmillSpeed: 8
-  playerSpeed: 3
+  playerSpeed: 15.5
   hintShowTime: 5
   hintCooldown: 35
   wordDifficulty: 2

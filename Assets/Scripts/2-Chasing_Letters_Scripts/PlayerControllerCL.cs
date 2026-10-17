@@ -26,12 +26,14 @@ public class PlayerControllerCL : MonoBehaviour
     private Animator animator;
     private NavMeshAgent agent;
     private Vector3 lastPosition;
+    private NearbyLetterTracker nearbyLetterTracker;
 
     void Start()
     {
         animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         lastPosition = transform.position;
+        nearbyLetterTracker = GetComponent<NearbyLetterTracker>();
 
         if (dataCollectionManager == null)
         {
@@ -92,11 +94,12 @@ public class PlayerControllerCL : MonoBehaviour
         if (promptCheckTimer >= promptCheckInterval)
         {
             promptCheckTimer = 0f;
-            SeekInteractibles();
+            InteractibleEffectForNearest();
+            nearbyLetterTracker?.SetNearbyLetters();
         }
     }
 
-    private void SeekInteractibles()
+    private void InteractibleEffectForNearest()
     {
         InteractableCL interactible = GetClosestInteractible();
         interactionEffectManager.InteractionEffect(interactible);
@@ -144,15 +147,18 @@ public class PlayerControllerCL : MonoBehaviour
         switch (interactable.type)
         {
             case InteractableType.LetterBox:
+            LetterStatus letterStatus = interactionObject.GetComponent<LetterStatus>();
                 if (!isCarrying)
                 {
                     string pickedFromBelt = CarryLetterBox(interactionObject, true);
+                    letterStatus?.NotifyLetterDisabled(true);
                     dataCollectionManager?.RegisterLetterPicked(pickedFromBelt, "belt", -1);
                 }
                 else
                 {
                     string handedToBelt = carriedLetterText != null ? carriedLetterText.text : null;
                     string takenFromBelt = SwapLetterBox(interactionObject);
+                    letterStatus?.NotifyLetterDisabled(true);
                     dataCollectionManager?.RegisterLetterSwapped(takenFromBelt, handedToBelt, "belt", -1);
                 }
                 break;
@@ -162,6 +168,7 @@ public class PlayerControllerCL : MonoBehaviour
                 if (interactionObject.transform.childCount > 0)
                 {
                     GameObject tableLetter = interactionObject.transform.GetChild(0).gameObject;
+                    if (deliverTablesManager == null) deliverTablesManager = FindAnyObjectByType<DeliverTablesManager>();
                     int slot = deliverTablesManager != null ? deliverTablesManager.GetSlotIndex(interactionObject) : -1;
 
                     if (isCarrying && tableLetter.activeInHierarchy)
