@@ -14,8 +14,11 @@ public class NearbyLetterTracker : MonoBehaviour
     public void SetNearbyLetters()
     {
         if (deliverTablesManager == null) deliverTablesManager = FindAnyObjectByType<DeliverTablesManager>();
-        if (deliverTablesManager == null) return;
+        if(pc == null) pc = FindAnyObjectByType<PlayerControllerCL>();
+        if (deliverTablesManager == null || pc == null) return;
 
+        // Usado para marcar letras próximas como inúteis quando uma criança está segurando uma letra útil.
+        bool holdingUsefulLetter = pc.isCarrying && deliverTablesManager.IsHeldLetterUsefull(pc.carriedLetterText.text, pc);
         List<InteractableCL> interactables = GetNearbyInteractibleLetters();
 
         if(interactables == null) return;
@@ -23,12 +26,12 @@ public class NearbyLetterTracker : MonoBehaviour
         foreach(InteractableCL letter in interactables)
         {
             if(letter == null) continue;
-
+            
             LetterStatus letterStatus = letter.GetComponent<LetterStatus>();
 
             if(letter.type != InteractableType.LetterBox || letterStatus == null) continue;
 
-            letterStatus.isUsefull = deliverTablesManager.IsLetterUsefull(letter, pc);
+            letterStatus.isUsefull = !holdingUsefulLetter && deliverTablesManager.IsNearbyLetterUsefull(letter, pc);
         }
     }
 

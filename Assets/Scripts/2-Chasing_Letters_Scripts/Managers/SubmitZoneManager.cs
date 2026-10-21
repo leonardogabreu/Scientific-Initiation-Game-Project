@@ -51,6 +51,7 @@ public class SubmitZoneManager : MonoBehaviour
     private void HandleCorrectWord()
     {
         DataCollectionManager.Instance?.FinishWordAttempt(); // Saves the correct word
+        DifficultyManager.Instance.DynamicDifficultyAdjustments();
 
         audioSource?.PlayOneShot(deliverCorrectSFX);
         Instantiate(deliverRightVFX, transform.position + Vector3.up, Quaternion.identity);

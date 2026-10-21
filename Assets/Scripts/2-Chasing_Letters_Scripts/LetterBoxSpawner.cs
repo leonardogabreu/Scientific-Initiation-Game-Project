@@ -137,7 +137,7 @@ public class LetterBoxSpawner : MonoBehaviour
             ChasingLettersGameManager.Instance.onWordChanged -= HandleWordChanged;
         }
 
-        if (DifficultyManager.Instance != null)
+        if (DifficultyManager.HasInstance)
         {
             DifficultyManager.Instance.onDifficultyChanged -= ApplyDifficultyProfile;
         }

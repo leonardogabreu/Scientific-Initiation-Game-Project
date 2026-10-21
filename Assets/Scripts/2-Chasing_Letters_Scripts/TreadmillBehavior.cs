@@ -23,7 +23,7 @@ public class TreadmillBehavior : MonoBehaviour
 
     void OnDisable()
     {
-        if (DifficultyManager.Instance != null)
+        if (DifficultyManager.HasInstance)
         {
             DifficultyManager.Instance.onDifficultyChanged -= ApplyDifficultyProfile;
         }

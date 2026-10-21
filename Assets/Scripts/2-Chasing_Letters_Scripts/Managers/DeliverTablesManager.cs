@@ -162,12 +162,30 @@ public class DeliverTablesManager : MonoBehaviour
         return builtWord.ToUpper();
     }
 
-    public bool IsLetterUsefull(InteractableCL letter, PlayerControllerCL pc)
+    // Classifica a letra que o player está segurando
+    public bool IsHeldLetterUsefull (string text, PlayerControllerCL pc)
+    {
+        if(string.IsNullOrEmpty(text)) return false;
+
+        bool result = IsLetterUsefull(text[0], pc, false);
+
+        return result; 
+    } 
+    
+    // Classifica letras próximas
+    public bool IsNearbyLetterUsefull(InteractableCL letter, PlayerControllerCL pc)
     {
         if (letter == null) return false;
 
-        string letterText = letter.LetterText.text;
-        char letterChar = letterText[0];
+        return IsLetterUsefull(letter.LetterText.text[0], pc, true);
+    }
+
+    // Helper; mesma lógica para a letra segurada e para a letra próxima: só muda como pegar esses textos
+    private bool IsLetterUsefull(char letterChar, PlayerControllerCL pc, bool discountHeldLetter)
+    {
+        if(pc == null) pc = FindAnyObjectByType<PlayerControllerCL>();
+        if(pc == null) return false;
+
         string targetWord = ChasingLettersGameManager.Instance.targetWord;
         string builtWord = GetBuiltWord();
 
@@ -185,7 +203,10 @@ public class DeliverTablesManager : MonoBehaviour
                 countBuilt++;
         }
 
-        if(pc.carriedLetter == null || !pc.carriedLetter.activeInHierarchy) return countBuilt < countTarget;
+        // Usado para desativar letras próximas se o player estiver segurando uma letra útil
+        if (!discountHeldLetter) return countBuilt < countTarget;
+
+        if(pc.carriedLetter == null || !pc.isCarrying) return countBuilt < countTarget;
 
         string heldLetter = pc.carriedLetterText.text;
 

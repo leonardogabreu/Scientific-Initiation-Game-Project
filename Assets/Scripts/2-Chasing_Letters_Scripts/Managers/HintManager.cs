@@ -80,7 +80,7 @@ public class HintManager : MonoBehaviour
 
         onHintVisibilityChanged -= HandleHintVisibilityChanged;
 
-        if (DifficultyManager.Instance != null)
+        if (DifficultyManager.HasInstance)
         {
             DifficultyManager.Instance.onDifficultyChanged -= ApplyDifficultyProfile;
         }

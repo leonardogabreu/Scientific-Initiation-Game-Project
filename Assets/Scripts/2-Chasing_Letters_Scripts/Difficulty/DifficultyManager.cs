@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 public enum GroupType
@@ -32,11 +31,9 @@ public class Metric // 1 métrica faz parte de 1 MetricGroup e tem 1 MetricType
 {
     public MetricType metricType;
     [Tooltip("Limite de eventos a serem coletados para essa métrica")]
-    public int dataResultsLimit = 5;
-    [Tooltip("Meta na unidade da métrica: 0.75 = 75% de acerto, 30 = 30 segundos...")]
+    public int minDataResultsAmount = 3;
+    [Tooltip("Meta na unidade da métrica: 0.75 = 75% de acerto, 30 = 30 segundos... Não pode ser 0.")]
     public float meta = 0.7f;
-    [Tooltip("Converte a unidade da métrica em tamanho de correção (ex.: 30 para segundos).")]
-    public float scale = 1f;
     [Tooltip("Desmarque quando um valor menor for o desejado (ex.: número de erros).")]
     public bool higherIsBetter = true;
     [Tooltip("Zona de aceitação da accuracy - nem muito fácil, nem muito difícil")]
@@ -56,6 +53,9 @@ public class MetricGroup // 1 MetricGroup tem várias Metrics, e faz parte de um
 public class DifficultyManager : MonoBehaviour
 {
     private static DifficultyManager _instance;
+
+    public static bool HasInstance => _instance != null;
+
     public static DifficultyManager Instance
     {
         get
@@ -76,6 +76,23 @@ public class DifficultyManager : MonoBehaviour
     [Tooltip("Valores iniciais dos parâmetros. Se vazio, usa Resources/DifficultyProfiles/Medium.")]
     [SerializeField] private DifficultyProfile startingProfile;
 
+    private const int minCorrectLetterChance = 40;
+    private const int maxCorrectLetterChance = 90;
+    private const float minMinSpawnTime = 2.5f;
+    private const float maxMinSpawnTime = 6f;
+    private const float minMaxSpawnTime = 5f;
+    private const float maxMaxSpawnTime = 10f;
+    private const int minLetterPoolSize = 10;
+    private const int maxLetterPoolSize = 20;
+    private const float minTreadmillSpeed = 3f;
+    private const float maxTreadmillSpeed = 8f;
+    private const float minPlayerSpeed = 12f;
+    private const float maxPlayerSpeed = 26f;
+    private const float minHintShowTime = 5f;
+    private const float maxHintShowTime = 15f;
+    private const float minHintCooldown = 10f;
+    private const float maxHintCooldown = 35f;
+
     public DifficultyProfile CurrentProfile { get; private set; }
     public event Action<DifficultyProfile> onDifficultyChanged;
 
@@ -94,7 +111,7 @@ public class DifficultyManager : MonoBehaviour
             group = GroupType.Skill,
             metricsList =
             {
-                new Metric { metricType = MetricType.ReachableLetterCaught, dataResultsLimit = 8, meta = 0.75f }
+                new Metric { metricType = MetricType.ReachableLetterCaught, meta = 0.75f } // 75% das letras pêgas
             }
         },
         new MetricGroup
@@ -102,8 +119,8 @@ public class DifficultyManager : MonoBehaviour
             group = GroupType.Memory,
             metricsList =
             {
-                new Metric { metricType = MetricType.TimeUntilHint, dataResultsLimit = 3, meta = 0.5f, scale = 60f },
-                new Metric { metricType = MetricType.NumberOfHints, dataResultsLimit = 3, meta = 100f, scale = 1/30f }
+                new Metric { metricType = MetricType.TimeUntilHint, minDataResultsAmount = 5, meta = 60f }, // 60segs até pedir nova dica
+                new Metric { metricType = MetricType.NumberOfHints, minDataResultsAmount = 5, meta = 3f, higherIsBetter = false }   // 3 dicas por palavra
             }
         },
         new MetricGroup
@@ -111,8 +128,8 @@ public class DifficultyManager : MonoBehaviour
             group = GroupType.Knowledge,
             metricsList =
             {
-                new Metric { metricType = MetricType.MissedAttemps, dataResultsLimit = 5, meta = 0.6f, scale = 1f },
-                new Metric { metricType = MetricType.MissedAttemps, dataResultsLimit = 5, meta = 0.6f, scale = 1f }
+                new Metric { metricType = MetricType.MissedAttemps, minDataResultsAmount = 1, meta = 2f, higherIsBetter = false }, // deu submit errado no max 2x (filtrar)
+                new Metric { metricType = MetricType.RightLetterInputs, meta = 0.6f } // meta: colocar 60% das letras no lugar correto
             }
         }
     };
@@ -149,6 +166,7 @@ public class DifficultyManager : MonoBehaviour
         RegisterCollectedData(metricType, (float)numero);
     }
 
+    // Chamado para registrar um evento coletado. Interface da classe
     public void RegisterCollectedData(MetricType metricType, float capturedData)
     {
         foreach (MetricGroup metricGroup in metricGroupsList)
@@ -157,53 +175,65 @@ public class DifficultyManager : MonoBehaviour
             if (metric == null) continue;
 
             metric.dataResultsList.Add(capturedData);
-            if (metric.dataResultsList.Count < metric.dataResultsLimit) return;
-
-            metric.dataResultsList.Clear();
-
-
             return;
         }
 
         Debug.LogWarning($"[DifficultyManager] Nenhum grupo tem a métrica {metricType}.");
     }
 
-    private float CalculoReajuste(GroupType group)
+    // Faz a média dos resultados obtidos para todos os eventos coletados na lista de cada métrica,
+    // e depois faz a média disso, para descobrir uma porcentagem de correção para os parâmetros de um grupo de métricas.
+    private float GetCorrection(GroupType group)
     {
-            // float correction = (metric.meta - average) / metric.scale;   // <- mudar conta para cada métrica especificamente
-            // if (!metric.higherIsBetter) correction = -correction;
-            // if (Mathf.Abs(correction) <= metric.metaDeadzone) return;
-        float result = 0;
-
-        switch (group)
+        List<float> results = new List<float>();
+        foreach(Metric metric in metricGroupsList[(int)group].metricsList)
         {
-            
-            case GroupType.Luck:
-                // Calculo especifico para grupo
-                return result;
-             case GroupType.Skill:
-                // Calculo especifico para grupo
-                return result;
-            case GroupType.Memory:
-                // Calculo especifico para grupo
-                return result;
-            case GroupType.Knowledge:
-                // Calculo especifico para grupo
-                return result;
-            default:
-                return result;
-        }   
+            if(metric.dataResultsList.Count >= metric.minDataResultsAmount)
+            {
+                float correction = (metric.meta - metric.dataResultsList.Average()) / metric.meta;
+                if (!metric.higherIsBetter) correction = -correction;
+                if (Mathf.Abs(correction) <= metric.metaDeadzone) correction = 0;
+                results.Add(correction);
+                metric.dataResultsList.Clear();
+            }
+        }
+
+        if (results.Count == 0) return 0;
+        return results.Average();
     }
-    // Usar apenas ao fim de uma palavra (submit)
-    public void AdjustGroup(GroupType group, float correction)
+
+    // Helper
+    private float ParamClamp(float param, float min, float max)
     {
+        return Mathf.Clamp(param, min, max);
+    }
+
+    // Ajusta cada parâmetro individualmente
+    private void AdjustParameter(string nomeDoParam, float min, float max, float correction, bool higherIsHarder, ref float param)
+    {
+        Debug.Log($"[DifficultyManager]: Previous {nomeDoParam} = {param}.");
+                
+        float delta = 0.5f * correction * (max - min);
+        param = higherIsHarder ? ParamClamp(param - delta, min, max) : ParamClamp(param + delta, min, max);
+
+        Debug.Log($"[DifficultyManager]: Correction = {correction}; Delta = {delta}; New {nomeDoParam} Value = {param}");
+    }
+
+    // Usado pelo DinamicDifficultyAdjutments (abaixo)
+    private void AdjustGroup(GroupType group)
+    {
+        MetricGroup metricGroup = metricGroupsList[(int)group];
+        float correction = GetCorrection(group);
+        if (correction == 0) return;
+
         switch (group)
         {
             case GroupType.Luck:
                 //lógica do ajuste de dificuldade no grupo luck
                 break;
             case GroupType.Skill:
-                //lógica do ajuste de dificuldade no grupo Skill
+                AdjustParameter("treadmillSpeed", minTreadmillSpeed, maxTreadmillSpeed, correction, true, ref CurrentProfile.treadmillSpeed);
+                
                 break;
             case GroupType.Memory:
                 //lógica do ajuste de dificuldade no grupo Memory
@@ -211,6 +241,14 @@ public class DifficultyManager : MonoBehaviour
             case GroupType.Knowledge:
                 //lógica do ajuste de dificuldade no grupo Knowledge
                 break;
+        }
+    }
+
+    public void DynamicDifficultyAdjustments()      // Chamado uma vez, ao acertar uma palavra
+    {
+        foreach(MetricGroup metricGroup in metricGroupsList)
+        {
+            AdjustGroup(metricGroup.group);
         }
         onDifficultyChanged?.Invoke(CurrentProfile);
     }
