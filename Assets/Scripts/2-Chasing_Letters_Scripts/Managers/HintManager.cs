@@ -86,9 +86,9 @@ public class HintManager : MonoBehaviour
         }
     }
 
-    private void ApplyDifficultyProfile(DifficultyProfile profile)
+    private void ApplyDifficultyProfile(DifficultyProfile profile) // ver isso
     {
-        hintShowTime = profile.hintShowTime;
+        hintShowTime = profile.hintDisplayTime;
         hintCooldown = profile.hintCooldown;
     }
 

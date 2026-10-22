@@ -2,27 +2,32 @@ using UnityEngine;
 
 public class LetterStatus : MonoBehaviour
 {
-    public bool isUsefull {get; set;} = false;
+    public bool isUseful {get; set;} = false;
     private bool wasRegistered = false;
     public void NotifyLetterDisabled(bool wasPicked) // Se foi pega/trocada, ou se o incinerador que desativou ela
     {
-        if (isUsefull && !wasRegistered)
+        if (isUseful && !wasRegistered)
         {
+#if UNITY_EDITOR
             Debug.Log("[DDA] " + GetComponent<InteractableCL>().LetterText.text + " registrada: " + wasPicked);
+#endif
             DifficultyManager.Instance.RegisterCollectedData(MetricType.ReachableLetterCaught, wasPicked);
-            isUsefull = false;
+            DataCollectionManager.Instance.CountSavedOrBurnedLetters(wasPicked);
+            isUseful = false;
             wasRegistered = true;
         }
-        else if (isUsefull && wasRegistered)
+        else if (isUseful && wasRegistered)
         {
+#if UNITY_EDITOR
             Debug.Log("[DDA] " + GetComponent<InteractableCL>().LetterText.text + " ignorada: já registrada");
+#endif
         }
 
     }
 
     void OnEnable()
     {
-        isUsefull = false;
+        isUseful = false;
         wasRegistered = false;
     }
 }

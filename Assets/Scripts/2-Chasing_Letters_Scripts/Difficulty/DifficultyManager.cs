@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+public enum AdjustmentSystemType
+{
+    InRealTime,
+    NotInRealTime
+}
 public enum GroupType
 {
     Luck,
@@ -16,7 +21,7 @@ public enum MetricType
 {
     UsefulLettersSpawned,   // Luck: Nro de letras úteis spawnadas (ao spawnar letras) -> provavelmente remover essa
     TimeToCompleteWord,     // Tudo? : Tempo até completar uma palavra -> apenas registrar por enquanto, pra ver a média de tempo de conclusão
-    ReachableLetterCaught,  // Skill: letra útil ao alcance foi pega (true) ou queimou (false)
+     ReachableLetterCaught,  // Skill: letra útil ao alcance foi pega (true) ou queimou (false)
     TimeUntilHint,          // Memory: segundos até a criança pedir a dica -> registrar a partir do fim do cooldown
     NumberOfHints,          // Memory: Numero de dicas pedidas (ao finalizar uma palavra) -> remover (ou só deixar registrado),
                             //  dá pra tirar isso a partir da métrica acima. 
@@ -52,6 +57,12 @@ public class MetricGroup // 1 MetricGroup tem várias Metrics, e faz parte de um
 /// Mantém o DifficultyProfile ativo, recebe os dados coletados no jogo e ajusta os parâmetros de cada grupo.
 public class DifficultyManager : MonoBehaviour
 {
+    private const string AdaptiveGameId = "mHmZdzk7E82ckYue7UvN"; 
+    // Por enquanto, mudar sempre que for buildar para as duas versões do jogo: a com ajuste em tempo real (Leo) ou não (Matheus) 
+    public AdjustmentSystemType adjustmentSystemType =>
+    WebGLManager.Instance != null && WebGLManager.Instance.GameId == AdaptiveGameId
+        ? AdjustmentSystemType.InRealTime
+        : AdjustmentSystemType.NotInRealTime;
     private static DifficultyManager _instance;
 
     public static bool HasInstance => _instance != null;
@@ -211,12 +222,15 @@ public class DifficultyManager : MonoBehaviour
     // Ajusta cada parâmetro individualmente
     private void AdjustParameter(string nomeDoParam, float min, float max, float correction, bool higherIsHarder, ref float param)
     {
+#if UNITY_EDITOR
         Debug.Log($"[DifficultyManager]: Previous {nomeDoParam} = {param}.");
-                
+#endif
+
         float delta = 0.5f * correction * (max - min);
         param = higherIsHarder ? ParamClamp(param - delta, min, max) : ParamClamp(param + delta, min, max);
-
+#if UNITY_EDITOR
         Debug.Log($"[DifficultyManager]: Correction = {correction}; Delta = {delta}; New {nomeDoParam} Value = {param}");
+#endif
     }
 
     // Usado pelo DinamicDifficultyAdjutments (abaixo)

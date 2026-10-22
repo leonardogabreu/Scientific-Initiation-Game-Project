@@ -47,7 +47,17 @@ public class DataCollectionManager : MonoBehaviour
             school_id = session?.SchoolId ?? "",
             discipline = session?.Discipline ?? "",
             subarea = session?.Subarea ?? "",
-            words_to_win = wordsToWin
+            words_to_win = wordsToWin,
+            correct_letter_chance = DifficultyManager.Instance.CurrentProfile.correctLetterChance,
+            min_spawn_time = DifficultyManager.Instance.CurrentProfile.minSpawnTime,
+            max_spawn_time = DifficultyManager.Instance.CurrentProfile.maxSpawnTime,
+            letter_pool_size = DifficultyManager.Instance.CurrentProfile.letterPoolSize,
+            treadmill_speed = DifficultyManager.Instance.CurrentProfile.treadmillSpeed,
+            player_speed = DifficultyManager.Instance.CurrentProfile.playerSpeed,
+            hint_display_time = DifficultyManager.Instance.CurrentProfile.hintDisplayTime,
+            hint_cooldown = DifficultyManager.Instance.CurrentProfile.hintCooldown,
+            word_difficulty = DifficultyManager.Instance.CurrentProfile.wordDifficulty.ToString(),
+            adjustment_system_type = DifficultyManager.Instance.adjustmentSystemType.ToString()
         });
     }
 
@@ -207,6 +217,13 @@ public class DataCollectionManager : MonoBehaviour
         });
     }
 
+    public void CountSavedOrBurnedLetters(bool saved)
+    {
+        if(currentWordAttempt == null) return;
+
+        if (saved) currentWordAttempt.usefulLettersSaved++;  
+        else currentWordAttempt.usefulLettersBurned++;
+    }
     public void FinishWordAttempt()
     {
         if (currentWordAttempt == null)
@@ -228,6 +245,8 @@ public class DataCollectionManager : MonoBehaviour
             word = currentWordAttempt.targetWord,
             mistakes = currentWordAttempt.mistakesCount,
             hints = currentWordAttempt.hintsCount,
+            useful_letters_saved = currentWordAttempt.usefulLettersSaved,
+            useful_letters_burned = currentWordAttempt.usefulLettersBurned,
             actions = currentWordAttempt.actionsCount,
             time = currentWordAttempt.timeSpent,
             first_try = firstTry
@@ -268,6 +287,16 @@ public class DataCollectionManager : MonoBehaviour
         public string discipline;
         public string subarea;
         public int words_to_win;
+        public int correct_letter_chance;
+        public float min_spawn_time;
+        public float max_spawn_time;
+        public int letter_pool_size;
+        public float treadmill_speed;
+        public float player_speed;
+        public float hint_display_time;
+        public float hint_cooldown;
+        public string word_difficulty;
+        public string adjustment_system_type;
     }
 
     [System.Serializable]
@@ -343,6 +372,8 @@ public class DataCollectionManager : MonoBehaviour
         public string word;
         public int mistakes;
         public int hints;
+        public int useful_letters_saved;
+        public int useful_letters_burned;
         public int actions;
         public float time;
         public bool first_try;

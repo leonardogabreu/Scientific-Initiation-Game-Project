@@ -18,6 +18,6 @@ MonoBehaviour:
   letterPoolSize: 15
   treadmillSpeed: 5
   playerSpeed: 18
-  hintShowTime: 10
+  hintDisplayTime: 10
   hintCooldown: 20
   wordDifficulty: 1

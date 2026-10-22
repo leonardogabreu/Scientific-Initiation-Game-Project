@@ -14,12 +14,12 @@ public class DifficultyProfile : ScriptableObject
     public int letterPoolSize = 15;
     [Header("Treadmill Behavior")]
     public float treadmillSpeed = 5f;
-    // player control
+
     [Header("PlayerController")]
     public float playerSpeed = 18f;
 
     [Header("Hint Display")]
-    public float hintShowTime = 10f;
+    public float hintDisplayTime = 10f;
     public float hintCooldown = 20f;
 
     [Header("Vendo ainda, sobre a dificuldade da palavra (provavelmente vai ser no DifficultyManager)")]

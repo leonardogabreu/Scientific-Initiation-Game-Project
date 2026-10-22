@@ -31,7 +31,7 @@ public class NearbyLetterTracker : MonoBehaviour
 
             if(letter.type != InteractableType.LetterBox || letterStatus == null) continue;
 
-            letterStatus.isUsefull = !holdingUsefulLetter && deliverTablesManager.IsNearbyLetterUsefull(letter, pc);
+            letterStatus.isUseful = !holdingUsefulLetter && deliverTablesManager.IsNearbyLetterUsefull(letter, pc);
         }
     }
 
