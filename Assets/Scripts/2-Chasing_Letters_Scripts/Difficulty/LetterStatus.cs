@@ -11,7 +11,6 @@ public class LetterStatus : MonoBehaviour
 #if UNITY_EDITOR
             Debug.Log("[DDA] " + GetComponent<InteractableCL>().LetterText.text + " registrada: " + wasPicked);
 #endif
-            DifficultyManager.Instance.RegisterCollectedData(MetricType.ReachableLetterCaught, wasPicked);
             DataCollectionManager.Instance.CountSavedOrBurnedLetters(wasPicked);
             isUseful = false;
             wasRegistered = true;

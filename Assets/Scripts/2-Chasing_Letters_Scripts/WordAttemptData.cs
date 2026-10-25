@@ -9,4 +9,6 @@ public class WordAttemptData
     public float timeSpent = 0;
     public int usefulLettersSaved = 0;
     public int usefulLettersBurned = 0;
+    public int distinctMistakesCount = 0;
+    public string lastCountedMistakeWord = null;
 }

@@ -13,26 +13,34 @@ public class NearbyLetterTracker : MonoBehaviour
 
     public void SetNearbyLetters()
     {
-        if (deliverTablesManager == null) deliverTablesManager = FindAnyObjectByType<DeliverTablesManager>();
-        if(pc == null) pc = FindAnyObjectByType<PlayerControllerCL>();
-        if (deliverTablesManager == null || pc == null) return;
-
-        // Usado para marcar letras próximas como inúteis quando uma criança está segurando uma letra útil.
-        bool holdingUsefulLetter = pc.isCarrying && deliverTablesManager.IsHeldLetterUsefull(pc.carriedLetterText.text, pc);
         List<InteractableCL> interactables = GetNearbyInteractibleLetters();
 
         if(interactables == null) return;
 
         foreach(InteractableCL letter in interactables)
         {
-            if(letter == null) continue;
-            
-            LetterStatus letterStatus = letter.GetComponent<LetterStatus>();
-
-            if(letter.type != InteractableType.LetterBox || letterStatus == null) continue;
-
-            letterStatus.isUseful = !holdingUsefulLetter && deliverTablesManager.IsNearbyLetterUsefull(letter, pc);
+            SetLetter(letter);
         }
+    }
+
+    // Public pra poder ser usado no PlayerController, para resolver o problema de letras serem pegas antes de serem marcadas como úteis
+    // (devido ao intervalo de 0.1s em cada evento de marcar letras próximas).
+    public void SetLetter(InteractableCL letter)
+    {
+        if(letter == null) return;
+
+        if (deliverTablesManager == null) deliverTablesManager = FindAnyObjectByType<DeliverTablesManager>();
+        if(pc == null) pc = FindAnyObjectByType<PlayerControllerCL>();
+        if (deliverTablesManager == null || pc == null) return;
+
+       // Usado para marcar letras próximas como inúteis quando uma criança está segurando uma letra útil. 
+        bool holdingUsefulLetter = pc.isCarrying && deliverTablesManager.IsHeldLetterUsefull(pc.carriedLetterText.text, pc);
+
+        LetterStatus letterStatus = letter.GetComponent<LetterStatus>();
+
+        if(letter.type != InteractableType.LetterBox || letterStatus == null) return;
+
+        letterStatus.isUseful = !holdingUsefulLetter && deliverTablesManager.IsNearbyLetterUsefull(letter, pc);
     }
 
     private List<InteractableCL> GetNearbyInteractibleLetters()

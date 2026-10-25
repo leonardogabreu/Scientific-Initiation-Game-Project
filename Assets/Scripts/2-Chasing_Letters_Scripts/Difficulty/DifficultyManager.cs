@@ -10,7 +10,6 @@ public enum AdjustmentSystemType
 }
 public enum GroupType
 {
-    Luck,
     Skill,
     Memory,
     Knowledge
@@ -19,16 +18,13 @@ public enum GroupType
 // O que é MEDIDO sobre a criança (entrada). Os parâmetros AJUSTADOS (saída) continuam no DifficultyProfile.
 public enum MetricType
 {
-    UsefulLettersSpawned,   // Luck: Nro de letras úteis spawnadas (ao spawnar letras) -> provavelmente remover essa
-    TimeToCompleteWord,     // Tudo? : Tempo até completar uma palavra -> apenas registrar por enquanto, pra ver a média de tempo de conclusão
-     ReachableLetterCaught,  // Skill: letra útil ao alcance foi pega (true) ou queimou (false)
+    ReachableLetterCaught,  // Skill: letra útil ao alcance foi pega (true) ou queimou (false)
     TimeUntilHint,          // Memory: segundos até a criança pedir a dica -> registrar a partir do fim do cooldown
     NumberOfHints,          // Memory: Numero de dicas pedidas (ao finalizar uma palavra) -> remover (ou só deixar registrado),
-                            //  dá pra tirar isso a partir da métrica acima. 
-    MissedAttemps,          // Knowledge: Número de tentativas erradas () 
+                            //  dá pra tirar isso a partir da métrica acima.
+    MissedAttemps,          // Knowledge: Número de tentativas erradas ()
                             // filtrar, para evitar que a criança fica spammando o botão pra tentar enviar (talvez colocar um cooldown)
     RightLetterInputs        // Knowledge: Nro de letras corretas ou erradas colocadas para formar a palavra. (true é correta, false é errada)
-
 }
 
 [Serializable]
@@ -48,7 +44,7 @@ public class Metric // 1 métrica faz parte de 1 MetricGroup e tem 1 MetricType
 }
 
 [Serializable]
-public class MetricGroup // 1 MetricGroup tem várias Metrics, e faz parte de um GroupType
+public class MetricGroup // 1 MetricGroup tem várias Metrics, e possui um GroupType
 {
     public GroupType group;
     public List<Metric> metricsList = new List<Metric>();
@@ -58,7 +54,6 @@ public class MetricGroup // 1 MetricGroup tem várias Metrics, e faz parte de um
 public class DifficultyManager : MonoBehaviour
 {
     private const string AdaptiveGameId = "mHmZdzk7E82ckYue7UvN"; 
-    // Por enquanto, mudar sempre que for buildar para as duas versões do jogo: a com ajuste em tempo real (Leo) ou não (Matheus) 
     public AdjustmentSystemType adjustmentSystemType =>
     WebGLManager.Instance != null && WebGLManager.Instance.GameId == AdaptiveGameId
         ? AdjustmentSystemType.InRealTime
@@ -111,18 +106,10 @@ public class DifficultyManager : MonoBehaviour
     {
         new MetricGroup
         {
-            group = GroupType.Luck,
-            metricsList =
-            {
-                new Metric {  }
-            }
-        },
-        new MetricGroup
-        {
             group = GroupType.Skill,
             metricsList =
             {
-                new Metric { metricType = MetricType.ReachableLetterCaught, meta = 0.75f } // 75% das letras pêgas
+                new Metric { metricType = MetricType.ReachableLetterCaught, minDataResultsAmount = 5, meta = 0.75f, metaDeadzone = 0.15f }
             }
         },
         new MetricGroup
@@ -130,8 +117,8 @@ public class DifficultyManager : MonoBehaviour
             group = GroupType.Memory,
             metricsList =
             {
-                new Metric { metricType = MetricType.TimeUntilHint, minDataResultsAmount = 5, meta = 60f }, // 60segs até pedir nova dica
-                new Metric { metricType = MetricType.NumberOfHints, minDataResultsAmount = 5, meta = 3f, higherIsBetter = false }   // 3 dicas por palavra
+                new Metric { metricType = MetricType.TimeUntilHint, minDataResultsAmount = 2, meta = 30f, metaDeadzone = 0.3f },
+                new Metric { metricType = MetricType.NumberOfHints, minDataResultsAmount = 1, meta = 1.5f, higherIsBetter = false, metaDeadzone = 0.4f }
             }
         },
         new MetricGroup
@@ -139,8 +126,8 @@ public class DifficultyManager : MonoBehaviour
             group = GroupType.Knowledge,
             metricsList =
             {
-                new Metric { metricType = MetricType.MissedAttemps, minDataResultsAmount = 1, meta = 2f, higherIsBetter = false }, // deu submit errado no max 2x (filtrar)
-                new Metric { metricType = MetricType.RightLetterInputs, meta = 0.6f } // meta: colocar 60% das letras no lugar correto
+                new Metric { metricType = MetricType.MissedAttemps, minDataResultsAmount = 1, meta = 1f, higherIsBetter = false, metaDeadzone = 0.5f },
+                new Metric { metricType = MetricType.RightLetterInputs, minDataResultsAmount = 5, meta = 0.8f, metaDeadzone = 0.15f }
             }
         }
     };
@@ -180,6 +167,9 @@ public class DifficultyManager : MonoBehaviour
     // Chamado para registrar um evento coletado. Interface da classe
     public void RegisterCollectedData(MetricType metricType, float capturedData)
     {
+#if UNITY_EDITOR
+        Debug.Log($"[DifficultyManager] {metricType} = {capturedData}");
+#endif
         foreach (MetricGroup metricGroup in metricGroupsList)
         {
             Metric metric = metricGroup.metricsList.Find(m => m.metricType == metricType);
@@ -242,9 +232,6 @@ public class DifficultyManager : MonoBehaviour
 
         switch (group)
         {
-            case GroupType.Luck:
-                //lógica do ajuste de dificuldade no grupo luck
-                break;
             case GroupType.Skill:
                 AdjustParameter("treadmillSpeed", minTreadmillSpeed, maxTreadmillSpeed, correction, true, ref CurrentProfile.treadmillSpeed);
                 

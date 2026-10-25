@@ -147,6 +147,8 @@ public class PlayerControllerCL : MonoBehaviour
         switch (interactable.type)
         {
             case InteractableType.LetterBox:
+            nearbyLetterTracker?.SetLetter(interactable);
+
             LetterStatus letterStatus = interactionObject.GetComponent<LetterStatus>();
                 if (!isCarrying)
                 {
@@ -259,7 +261,7 @@ public class PlayerControllerCL : MonoBehaviour
         {
             animator.SetBool("IsCarrying", true);
         }
-
+       
         return carriedLetterText.text;
     }
 
