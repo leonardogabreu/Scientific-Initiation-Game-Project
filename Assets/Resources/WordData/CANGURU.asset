@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: CANGURU
   wordImage: {fileID: 21300000, guid: 330fb3c7f157309ac9e0dc14543d9b7d, type: 3}
+  difficulty: 1

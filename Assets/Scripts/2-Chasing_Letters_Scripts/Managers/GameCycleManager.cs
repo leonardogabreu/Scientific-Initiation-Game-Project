@@ -96,6 +96,7 @@ public void changeGameState(GameStateCL gameStateCL)
             startPanel.SetActive(false);
             playingPanel.SetActive(false);
             gameOverPanel.SetActive(true);
+            correctWords = 0;
 
             navMeshAgent?.ResetPath();
 

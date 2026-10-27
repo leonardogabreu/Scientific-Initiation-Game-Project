@@ -47,7 +47,16 @@ public class DataCollectionManager : MonoBehaviour
             school_id = session?.SchoolId ?? "",
             discipline = session?.Discipline ?? "",
             subarea = session?.Subarea ?? "",
-            words_to_win = wordsToWin
+            words_to_win = wordsToWin,
+            correct_letter_chance = DifficultyManager.Instance.CurrentProfile.correctLetterChance,
+            min_spawn_time = DifficultyManager.Instance.CurrentProfile.minSpawnTime,
+            max_spawn_time = DifficultyManager.Instance.CurrentProfile.maxSpawnTime,
+            treadmill_speed = DifficultyManager.Instance.CurrentProfile.treadmillSpeed,
+            player_speed = DifficultyManager.Instance.CurrentProfile.playerSpeed,
+            hint_display_time = DifficultyManager.Instance.CurrentProfile.hintDisplayTime,
+            hint_cooldown = DifficultyManager.Instance.CurrentProfile.hintCooldown,
+            word_difficulty = DifficultyManager.Instance.CurrentProfile.wordDifficulty.ToString(),
+            adjustment_system_type = DifficultyManager.Instance.adjustmentSystemType.ToString()
         });
     }
 
@@ -112,6 +121,8 @@ public class DataCollectionManager : MonoBehaviour
             action_index = ++currentWordAttempt.actionsCount,
             time = ElapsedOnWord
         });
+
+        DifficultyManager.Instance.RegisterCollectedData(MetricType.RightLetterInputs, IsLetterInRightSlot(letter, slot));
     }
 
     /// <summary>
@@ -136,6 +147,11 @@ public class DataCollectionManager : MonoBehaviour
             action_index = ++currentWordAttempt.actionsCount,
             time = ElapsedOnWord
         });
+
+        if (source == "table" && LetterMoved(given))
+        {
+            DifficultyManager.Instance.RegisterCollectedData(MetricType.RightLetterInputs, IsLetterInRightSlot(given, slot));
+        }
     }
 
     /// <summary>O aluno jogou fora a letra que estava carregando.</summary>
@@ -172,6 +188,12 @@ public class DataCollectionManager : MonoBehaviour
         currentWordAttempt.mistakesCount++;
         sessionMistakes++;
 
+        if (submittedWord != currentWordAttempt.lastCountedMistakeWord)
+        {
+            currentWordAttempt.distinctMistakesCount++;
+            currentWordAttempt.lastCountedMistakeWord = submittedWord;
+        }
+
         GameEventReporter.Instance?.Report("word_mistake", new WordMistakePayload
         {
             session_number = SessionNumber,
@@ -190,11 +212,13 @@ public class DataCollectionManager : MonoBehaviour
         }
     }
 
-    public void RegisterHint()
+    public void RegisterHint(float hintAvailableSince)
     {
         if (currentWordAttempt == null) return;
 
         currentWordAttempt.hintsCount++;
+
+        float timeSinceHintAvailable = Time.time - Mathf.Max(hintAvailableSince, wordStartTime);
 
         GameEventReporter.Instance?.Report("hint_used", new HintUsedPayload
         {
@@ -203,10 +227,22 @@ public class DataCollectionManager : MonoBehaviour
             challenge_id = currentWordAttempt.challengeId ?? "",
             word = currentWordAttempt.targetWord,
             hint_number = currentWordAttempt.hintsCount,
-            time = ElapsedOnWord
+            time = ElapsedOnWord,
+            time_since_hint_available = timeSinceHintAvailable
         });
+
+        DifficultyManager.Instance.RegisterCollectedData(MetricType.TimeUntilHint, timeSinceHintAvailable);
     }
 
+    public void CountSavedOrBurnedLetters(bool saved)
+    {
+        if(currentWordAttempt == null) return;
+
+        if (saved) currentWordAttempt.usefulLettersSaved++;  
+        else currentWordAttempt.usefulLettersBurned++;
+
+        DifficultyManager.Instance.RegisterCollectedData(MetricType.ReachableLetterCaught, saved);
+    }
     public void FinishWordAttempt()
     {
         if (currentWordAttempt == null)
@@ -228,6 +264,8 @@ public class DataCollectionManager : MonoBehaviour
             word = currentWordAttempt.targetWord,
             mistakes = currentWordAttempt.mistakesCount,
             hints = currentWordAttempt.hintsCount,
+            useful_letters_saved = currentWordAttempt.usefulLettersSaved,
+            useful_letters_burned = currentWordAttempt.usefulLettersBurned,
             actions = currentWordAttempt.actionsCount,
             time = currentWordAttempt.timeSpent,
             first_try = firstTry
@@ -235,7 +273,16 @@ public class DataCollectionManager : MonoBehaviour
 
         ChasingLettersApiManager.Instance?.SubmitResponse(currentWordAttempt.challengeId, true);
 
+        DifficultyManager.Instance.RegisterCollectedData(MetricType.NumberOfHints ,currentWordAttempt.hintsCount);
+        DifficultyManager.Instance.RegisterCollectedData(MetricType.MissedAttemps, currentWordAttempt.distinctMistakesCount);
+
         currentWordAttempt = null;
+    }
+
+    private bool IsLetterInRightSlot(string letter, int slot)
+    {
+        string word = currentWordAttempt.targetWord;
+        return slot >= 0 && slot < word.Length && letter == word[slot].ToString();
     }
 
     public void ReportSessionFinished()
@@ -268,6 +315,15 @@ public class DataCollectionManager : MonoBehaviour
         public string discipline;
         public string subarea;
         public int words_to_win;
+        public int correct_letter_chance;
+        public float min_spawn_time;
+        public float max_spawn_time;
+        public float treadmill_speed;
+        public float player_speed;
+        public float hint_display_time;
+        public float hint_cooldown;
+        public string word_difficulty;
+        public string adjustment_system_type;
     }
 
     [System.Serializable]
@@ -332,6 +388,7 @@ public class DataCollectionManager : MonoBehaviour
         public string word;
         public int hint_number;
         public float time;
+        public float time_since_hint_available;
     }
 
     [System.Serializable]
@@ -343,6 +400,8 @@ public class DataCollectionManager : MonoBehaviour
         public string word;
         public int mistakes;
         public int hints;
+        public int useful_letters_saved;
+        public int useful_letters_burned;
         public int actions;
         public float time;
         public bool first_try;

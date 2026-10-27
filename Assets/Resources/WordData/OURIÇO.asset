@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: "OURI\xC7O"
   wordImage: {fileID: 21300000, guid: 6cdad5cadea1e6dc99bc07a66924d06a, type: 3}
+  difficulty: 1

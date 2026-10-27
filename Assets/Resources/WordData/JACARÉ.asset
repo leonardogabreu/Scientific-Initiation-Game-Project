@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: "JACAR\xC9"
   wordImage: {fileID: 21300000, guid: ff63f1481b8740f01b8f610835659193, type: 3}
+  difficulty: 1

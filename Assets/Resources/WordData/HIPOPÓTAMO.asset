@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: "HIPOP\xD3TAMO"
   wordImage: {fileID: 21300000, guid: 4b5b658cd7a43514e98d68b9459a7c8c, type: 3}
+  difficulty: 2

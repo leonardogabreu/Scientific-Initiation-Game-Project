@@ -10,8 +10,6 @@ public class DeliverTablesManager : MonoBehaviour
 
     void Awake()
     {
-        // Antes de qualquer Start: a escolha de palavra precisa saber quantas mesas existem
-        // para descartar palavras da plataforma que não caberiam.
         FillTablesLists();
         ResetAllTables();
 
@@ -34,8 +32,6 @@ public class DeliverTablesManager : MonoBehaviour
         }
     }
 
-    // As mesas só são montadas quando a palavra da rodada existe de fato. Montar antes disso
-    // deixava o número de mesas fora de sincronia com a palavra que chegava da API depois.
     private void HandleWordChanged()
     {
         ResetAllTables();
@@ -164,6 +160,62 @@ public class DeliverTablesManager : MonoBehaviour
         }
 
         return builtWord.ToUpper();
+    }
+
+    // Classifica a letra que o player está segurando
+    public bool IsHeldLetterUsefull (string text, PlayerControllerCL pc)
+    {
+        if(string.IsNullOrEmpty(text)) return false;
+
+        bool result = IsLetterUsefull(text[0], pc, false);
+
+        return result; 
+    } 
+    
+    // Classifica letras próximas
+    public bool IsNearbyLetterUsefull(InteractableCL letter, PlayerControllerCL pc)
+    {
+        if (letter == null) return false;
+
+        return IsLetterUsefull(letter.LetterText.text[0], pc, true);
+    }
+
+    // Helper; mesma lógica para a letra segurada e para a letra próxima: só muda como pegar esses textos
+    private bool IsLetterUsefull(char letterChar, PlayerControllerCL pc, bool discountHeldLetter)
+    {
+        if(pc == null) pc = FindAnyObjectByType<PlayerControllerCL>();
+        if(pc == null) return false;
+
+        string targetWord = ChasingLettersGameManager.Instance.targetWord;
+        string builtWord = GetBuiltWord();
+
+        int countTarget = 0;
+        foreach (char c in targetWord)
+        {
+            if (c == letterChar)
+                countTarget++;
+        }
+
+        int countBuilt = 0;
+        foreach (char c in builtWord)
+        {
+            if (c == letterChar)
+                countBuilt++;
+        }
+
+        // Usado para desativar letras próximas se o player estiver segurando uma letra útil
+        if (!discountHeldLetter) return countBuilt < countTarget;
+
+        if(pc.carriedLetter == null || !pc.isCarrying) return countBuilt < countTarget;
+
+        string heldLetter = pc.carriedLetterText.text;
+
+        if(string.IsNullOrEmpty(heldLetter)) return countBuilt < countTarget;
+
+        char heldChar = heldLetter[0];
+
+        if(heldChar == letterChar) return countBuilt + 1 < countTarget;
+        return countBuilt < countTarget;
     }
 
     public bool CheckSubmit()

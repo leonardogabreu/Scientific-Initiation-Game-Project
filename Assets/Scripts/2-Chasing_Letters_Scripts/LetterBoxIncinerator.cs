@@ -6,7 +6,14 @@ public class LetterBoxIncinerator : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("LetterBox"))
         {
+            LetterStatus letterStatus = collision.gameObject.GetComponent<LetterStatus>();
+            if(letterStatus != null)
+            {
+                letterStatus.NotifyLetterDisabled(false);
+            }
+
             collision.gameObject.SetActive(false);
+
         }
     }
 }

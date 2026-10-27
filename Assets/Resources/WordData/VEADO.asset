@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: VEADO
   wordImage: {fileID: 21300000, guid: b5e27f345db06e4cea6553f8ce388f0c, type: 3}
+  difficulty: 1

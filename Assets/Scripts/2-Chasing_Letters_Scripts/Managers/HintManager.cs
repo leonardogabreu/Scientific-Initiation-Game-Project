@@ -10,6 +10,7 @@ public class HintManager : MonoBehaviour
     [SerializeField] private float hintCooldown = 20.0f;
     [SerializeField] private float hintShowTime = 10.0f;
     private bool canGiveHint = true;
+    private float hintAvailableSince = 0f;
 
     public event Action<bool> onHintVisibilityChanged;
 
@@ -32,8 +33,7 @@ public class HintManager : MonoBehaviour
     {
         if (!canGiveHint) return;
 
-        // Quantas dicas o aluno precisou é um dado da pesquisa tão relevante quanto os erros.
-        DataCollectionManager.Instance?.RegisterHint();
+        DataCollectionManager.Instance?.RegisterHint(hintAvailableSince);
 
         StartCoroutine(HintRoutine());
     }
@@ -54,6 +54,7 @@ public class HintManager : MonoBehaviour
         }
 
         canGiveHint = true;
+        hintAvailableSince = Time.time;
     }
 
     void OnEnable()
@@ -64,6 +65,12 @@ public class HintManager : MonoBehaviour
         }
 
         onHintVisibilityChanged += HandleHintVisibilityChanged;
+
+        if (DifficultyManager.Instance != null)
+        {
+            DifficultyManager.Instance.onDifficultyChanged += ApplyDifficultyProfile;
+            ApplyDifficultyProfile(DifficultyManager.Instance.CurrentProfile);
+        }
     }
 
     void OnDisable()
@@ -74,6 +81,17 @@ public class HintManager : MonoBehaviour
         }
 
         onHintVisibilityChanged -= HandleHintVisibilityChanged;
+
+        if (DifficultyManager.HasInstance)
+        {
+            DifficultyManager.Instance.onDifficultyChanged -= ApplyDifficultyProfile;
+        }
+    }
+
+    private void ApplyDifficultyProfile(DifficultyProfile profile) // ver isso
+    {
+        hintShowTime = profile.hintDisplayTime;
+        hintCooldown = profile.hintCooldown;
     }
 
     private void HandleHintVisibilityChanged(bool visible)
@@ -86,6 +104,7 @@ public class HintManager : MonoBehaviour
         // Interrupts any ongoing hint and resets the state, for any new state.
         StopAllCoroutines();
         canGiveHint = true;
+        hintAvailableSince = Time.time;
         onHintVisibilityChanged?.Invoke(false);
     }
 }

@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: "LE\xC3O"
   wordImage: {fileID: 21300000, guid: 653900986d67770369b320f7f02efd10, type: 3}
+  difficulty: 0

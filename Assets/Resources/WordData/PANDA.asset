@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: PANDA
   wordImage: {fileID: 21300000, guid: c08ff77ec7f2b7a59ad0db6bad0f86a7, type: 3}
+  difficulty: 1

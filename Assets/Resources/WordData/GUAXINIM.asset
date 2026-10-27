@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WordData
   targetWord: GUAXINIM
   wordImage: {fileID: 21300000, guid: f6ba70729a229904c9571a1da402012d, type: 3}
+  difficulty: 2
