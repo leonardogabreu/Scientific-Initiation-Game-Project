@@ -15,7 +15,6 @@ MonoBehaviour:
   correctLetterChance: 70
   minSpawnTime: 4.5
   maxSpawnTime: 8
-  letterPoolSize: 15
   treadmillSpeed: 5
   playerSpeed: 18
   hintDisplayTime: 10

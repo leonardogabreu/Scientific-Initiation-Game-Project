@@ -85,7 +85,7 @@ public class ChasingLettersApiManager : MonoBehaviour
 
     private IEnumerator RequestWordRoutine(Func<string, bool> isPlayable, WordDifficulty? targetDifficulty, Action<WordChallenge> onReady)
     {
-        if (prefetched != null && IsUsable(prefetched, isPlayable))
+        if (prefetched != null && IsUsable(prefetched, isPlayable) && (targetDifficulty == null || prefetched.difficulty == targetDifficulty.Value))
         {
             WordChallenge ready = prefetched;
             prefetched = null;

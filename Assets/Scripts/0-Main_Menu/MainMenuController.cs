@@ -12,6 +12,7 @@ public class MainMenuController : MonoBehaviour
     public GameObject tutorialContainer;
     public GameObject settingsMenu;
     public GameObject levelSelectPanel;
+    public GameObject monitorsPanel;
 
     [Header("Paginas do Tutorial")]
     public GameObject[] tutorialPages; 
@@ -23,8 +24,20 @@ public class MainMenuController : MonoBehaviour
         closeTutorial(); 
         closeSettingsMenu();
         closeLevelSelectionPanel();
+        // closeMonitorsPanel();
     }
 
+    public void openLevelMonitorsPanel()
+    {
+        if (monitorsPanel != null) monitorsPanel.SetActive(true);
+    }
+
+    public void closeMonitorsPanel()
+    {
+        if (monitorsPanel != null) monitorsPanel.SetActive(false);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+    }
+    
     public void openLevelSelectionPanel()
     {
         if (levelSelectPanel != null) levelSelectPanel.SetActive(true);

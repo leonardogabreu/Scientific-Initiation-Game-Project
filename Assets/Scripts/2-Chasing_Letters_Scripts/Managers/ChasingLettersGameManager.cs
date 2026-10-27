@@ -53,11 +53,6 @@ public class ChasingLettersGameManager : MonoBehaviour
 
         hintText?.gameObject.SetActive(false);
 
-        if (DifficultyManager.Instance != null)
-        {
-            numberOfInstances = DifficultyManager.Instance.CurrentProfile.letterPoolSize;
-        }
-
         // Populate the object pool at the start of the game
         for(int i = 0; i < numberOfInstances; i++)
         {
@@ -120,7 +115,8 @@ public class ChasingLettersGameManager : MonoBehaviour
             return;
         }
 
-        WordDifficulty? targetDifficulty = DifficultyManager.Instance != null ? DifficultyManager.Instance.CurrentProfile.wordDifficulty : null;
+        WordDifficulty? targetDifficulty = DifficultyManager.Instance != null && DifficultyManager.Instance.adjustmentSystemType == AdjustmentSystemType.InRealTime?
+        DifficultyManager.Instance.CurrentProfile.wordDifficulty : null;
 
         provider.RequestWord(IsPlayableWord, targetDifficulty, challenge =>
         {
@@ -170,7 +166,8 @@ public class ChasingLettersGameManager : MonoBehaviour
 
         if (availableWords.Count == 0) refillAvailableWords();
 
-        WordDifficulty? targetDifficulty = DifficultyManager.Instance != null ? DifficultyManager.Instance.CurrentProfile.wordDifficulty: null;
+        WordDifficulty? targetDifficulty = DifficultyManager.Instance != null && DifficultyManager.Instance.adjustmentSystemType == AdjustmentSystemType.InRealTime?
+        DifficultyManager.Instance.CurrentProfile.wordDifficulty : null;
 
         WordData selectedData = SelectAndRemoveWord(targetDifficulty) ?? SelectAndRemoveWord(null);
 

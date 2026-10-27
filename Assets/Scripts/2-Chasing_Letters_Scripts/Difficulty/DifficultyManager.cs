@@ -22,9 +22,8 @@ public enum MetricType
     TimeUntilHint,          // Memory: segundos até a criança pedir a dica -> registrar a partir do fim do cooldown
     NumberOfHints,          // Memory: Numero de dicas pedidas (ao finalizar uma palavra) -> remover (ou só deixar registrado),
                             //  dá pra tirar isso a partir da métrica acima.
-    MissedAttemps,          // Knowledge: Número de tentativas erradas ()
-                            // filtrar, para evitar que a criança fica spammando o botão pra tentar enviar (talvez colocar um cooldown)
-    RightLetterInputs        // Knowledge: Nro de letras corretas ou erradas colocadas para formar a palavra. (true é correta, false é errada)
+    MissedAttemps,          // Knowledge: Número de tentativas erradas (filtrado, para evitar que o player fique spammando o botão pra tentar enviar)
+    RightLetterInputs       // Knowledge: Nro de letras corretas ou erradas colocadas para formar a palavra. (true é correta, false é errada)
 }
 
 [Serializable]
@@ -88,8 +87,6 @@ public class DifficultyManager : MonoBehaviour
     private const float maxMinSpawnTime = 6f;
     private const float minMaxSpawnTime = 5f;
     private const float maxMaxSpawnTime = 10f;
-    private const int minLetterPoolSize = 10;
-    private const int maxLetterPoolSize = 20;
     private const float minTreadmillSpeed = 3f;
     private const float maxTreadmillSpeed = 8f;
     private const float minPlayerSpeed = 12f;
@@ -223,6 +220,30 @@ public class DifficultyManager : MonoBehaviour
 #endif
     }
 
+    private void AdjustParameter(string nomeDoParam, float min, float max, float correction, bool higherIsHarder, ref int param)
+    {
+        float _param = (float) param;
+        AdjustParameter(nomeDoParam, min, max, correction, higherIsHarder, ref _param);
+        param = Mathf.RoundToInt(_param);
+    }
+
+    private void AdjustWordDifficultyParameter(string nomeDoParam, float correction)
+    {
+#if UNITY_EDITOR
+        Debug.Log($"[DifficultyManager]: Previous {nomeDoParam} = {CurrentProfile.wordDifficulty}.");
+#endif
+
+        int wordDifficulty = (int)CurrentProfile.wordDifficulty;
+        if(correction > 0) wordDifficulty = Mathf.Clamp(--wordDifficulty, 0, 2);
+        if(correction < 0) wordDifficulty = Mathf.Clamp(++wordDifficulty, 0, 2);
+
+        CurrentProfile.wordDifficulty = (WordDifficulty) wordDifficulty;
+
+#if UNITY_EDITOR
+        Debug.Log($"[DifficultyManager]: Correction = {correction}; Delta = {wordDifficulty}; New {nomeDoParam} Value = {CurrentProfile.wordDifficulty}");
+#endif
+    }
+
     // Usado pelo DinamicDifficultyAdjutments (abaixo)
     private void AdjustGroup(GroupType group)
     {
@@ -234,13 +255,20 @@ public class DifficultyManager : MonoBehaviour
         {
             case GroupType.Skill:
                 AdjustParameter("treadmillSpeed", minTreadmillSpeed, maxTreadmillSpeed, correction, true, ref CurrentProfile.treadmillSpeed);
-                
+                AdjustParameter("minSpawnTime", minMinSpawnTime, maxMinSpawnTime, correction, false, ref CurrentProfile.minSpawnTime);
+                AdjustParameter("maxSpawnTime", minMaxSpawnTime, maxMaxSpawnTime, correction, false, ref CurrentProfile.maxSpawnTime);
+                AdjustParameter("playerSpeed", minPlayerSpeed, maxPlayerSpeed, correction, false, ref CurrentProfile.playerSpeed);
+
                 break;
             case GroupType.Memory:
-                //lógica do ajuste de dificuldade no grupo Memory
+                AdjustParameter("hintShowTime", minHintShowTime, maxHintShowTime, correction, false, ref CurrentProfile.hintDisplayTime);
+                AdjustParameter("hintCooldown", minHintCooldown, maxHintCooldown, correction, true, ref CurrentProfile.hintCooldown);
+
                 break;
             case GroupType.Knowledge:
-                //lógica do ajuste de dificuldade no grupo Knowledge
+                AdjustParameter("correctLetterChance", minCorrectLetterChance, maxCorrectLetterChance, correction, false, ref CurrentProfile.correctLetterChance);
+                AdjustWordDifficultyParameter("wordDifficulty", correction);
+
                 break;
         }
     }

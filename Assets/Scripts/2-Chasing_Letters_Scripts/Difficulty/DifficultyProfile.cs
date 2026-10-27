@@ -11,7 +11,6 @@ public class DifficultyProfile : ScriptableObject
     [Range(0, 100)] public int correctLetterChance = 70;     
     public float minSpawnTime = 4.5f;
     public float maxSpawnTime = 8f;
-    public int letterPoolSize = 15;
     [Header("Treadmill Behavior")]
     public float treadmillSpeed = 5f;
 

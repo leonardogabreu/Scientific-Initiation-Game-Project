@@ -51,7 +51,6 @@ public class DataCollectionManager : MonoBehaviour
             correct_letter_chance = DifficultyManager.Instance.CurrentProfile.correctLetterChance,
             min_spawn_time = DifficultyManager.Instance.CurrentProfile.minSpawnTime,
             max_spawn_time = DifficultyManager.Instance.CurrentProfile.maxSpawnTime,
-            letter_pool_size = DifficultyManager.Instance.CurrentProfile.letterPoolSize,
             treadmill_speed = DifficultyManager.Instance.CurrentProfile.treadmillSpeed,
             player_speed = DifficultyManager.Instance.CurrentProfile.playerSpeed,
             hint_display_time = DifficultyManager.Instance.CurrentProfile.hintDisplayTime,
@@ -319,7 +318,6 @@ public class DataCollectionManager : MonoBehaviour
         public int correct_letter_chance;
         public float min_spawn_time;
         public float max_spawn_time;
-        public int letter_pool_size;
         public float treadmill_speed;
         public float player_speed;
         public float hint_display_time;
