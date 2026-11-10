@@ -6151,6 +6151,8 @@ MonoBehaviour:
   levels:
   - displayName: Fase 1 - Escrita
     sceneName: 2-Chasing_Letters
+  - displayName: Fase 2 - Escuta
+    sceneName: 3-Audio_Words
   buttonContainerParent: {fileID: 1412919686}
   levelButtonTemplate: {fileID: 784334951}
   unlockAll: 1

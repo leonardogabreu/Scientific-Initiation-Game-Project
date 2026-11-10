@@ -52,9 +52,10 @@ public class MetricGroup // 1 MetricGroup tem várias Metrics, e possui um Group
 /// Mantém o DifficultyProfile ativo, recebe os dados coletados no jogo e ajusta os parâmetros de cada grupo.
 public class DifficultyManager : MonoBehaviour
 {
-    private const string AdaptiveGameId = "mHmZdzk7E82ckYue7UvN"; 
+    private const string AdaptiveGameId = "mHmZdzk7E82ckYue7UvN";
+    [SerializeField] private bool dynamicAdjustmentEnabled = false;
     public AdjustmentSystemType adjustmentSystemType =>
-    WebGLManager.Instance != null && WebGLManager.Instance.GameId == AdaptiveGameId
+    dynamicAdjustmentEnabled && WebGLManager.Instance != null && WebGLManager.Instance.GameId == AdaptiveGameId
         ? AdjustmentSystemType.InRealTime
         : AdjustmentSystemType.NotInRealTime;
     private static DifficultyManager _instance;

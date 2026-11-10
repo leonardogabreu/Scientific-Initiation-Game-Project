@@ -80,9 +80,10 @@ public class LetterBoxSpawner : MonoBehaviour
     {
         int roll = Random.Range(0, 100);
         string currentWord = ChasingLettersGameManager.Instance?.targetWord;
+        int letterChance = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.GetCorrectLetterChance(correctLetterChance) : correctLetterChance;
 
         // If the roll is within the percentage and the word is valid, pick a letter from the target word
-        if (roll < correctLetterChance && !string.IsNullOrEmpty(currentWord) && currentWordLettersList != null)
+        if (roll < letterChance &&!string.IsNullOrEmpty(currentWord) && currentWordLettersList != null)
         {
             // If the list is empty or the word has changed (new word)
             if (currentWordLettersList.Count == 0 || currentWord != lastTrackedWord) 

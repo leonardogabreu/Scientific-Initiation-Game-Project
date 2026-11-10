@@ -27,6 +27,8 @@ public class ChasingLettersGameManager : MonoBehaviour
 
     public string LetterPool => challengeSource != null ? challengeSource.LetterPool : Alphabet;
 
+    public int GetCorrectLetterChance(int profileChance) => challengeSource != null ? challengeSource.GetCorrectLetterChance(profileChance) : profileChance;
+
     [Header("Hint Manager")]
 
     [SerializeField] private TMP_Text hintText;

@@ -48,7 +48,9 @@ public class DataCollectionManager : MonoBehaviour
             discipline = session?.Discipline ?? "",
             subarea = session?.Subarea ?? "",
             words_to_win = wordsToWin,
-            correct_letter_chance = DifficultyManager.Instance.CurrentProfile.correctLetterChance,
+            correct_letter_chance = ChasingLettersGameManager.Instance != null
+                ? ChasingLettersGameManager.Instance.GetCorrectLetterChance(DifficultyManager.Instance.CurrentProfile.correctLetterChance)
+                : DifficultyManager.Instance.CurrentProfile.correctLetterChance,
             min_spawn_time = DifficultyManager.Instance.CurrentProfile.minSpawnTime,
             max_spawn_time = DifficultyManager.Instance.CurrentProfile.maxSpawnTime,
             treadmill_speed = DifficultyManager.Instance.CurrentProfile.treadmillSpeed,
