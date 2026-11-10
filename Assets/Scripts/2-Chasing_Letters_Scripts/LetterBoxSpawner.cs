@@ -100,8 +100,9 @@ public class LetterBoxSpawner : MonoBehaviour
         else 
         {
             // Pick a completely random letter from the alphabet array
-            int randomIndex = Random.Range(0, ChasingLettersGameManager.Alphabet.Length);
-            return ChasingLettersGameManager.Alphabet[randomIndex].ToString();
+            string letterPool = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.LetterPool : ChasingLettersGameManager.Alphabet;
+            int randomIndex = Random.Range(0, letterPool.Length);
+            return letterPool[randomIndex].ToString();
         }
     }
 

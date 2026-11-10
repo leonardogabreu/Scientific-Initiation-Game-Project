@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ChasingLettersGameManager : MonoBehaviour
 {
@@ -22,9 +21,11 @@ public class ChasingLettersGameManager : MonoBehaviour
 
     [Header("Word Database")]
     public string targetWord = "";
-    public WordData[] levelWords;
-    private List<int> availableWords = new List<int>();    // List of words that have not been selected yet
-    public Image currentWordImageUI;
+
+    [Header("Challenge Source")]
+    [SerializeField] private ChallengeSource challengeSource;
+
+    public string LetterPool => challengeSource != null ? challengeSource.LetterPool : Alphabet;
 
     [Header("Hint Manager")]
 
@@ -61,9 +62,10 @@ public class ChasingLettersGameManager : MonoBehaviour
             letterBoxesInstances.Add(newBox);
         }
 
-        levelWords = Resources.LoadAll<WordData>("WordData");
-
-        refillAvailableWords();
+        if (challengeSource == null)
+        {
+            challengeSource = GetComponent<ChallengeSource>();
+        }
     }
 
     void OnDestroy()
@@ -106,29 +108,16 @@ public class ChasingLettersGameManager : MonoBehaviour
     {
         IsWordReady = false;
 
-        ChasingLettersApiManager provider = ChasingLettersApiManager.Instance;
-
-        if (provider == null)
+        if (challengeSource == null)
         {
-            ApplyLocalWord();
+            Debug.LogError("[ChasingLettersGameManager] Nenhuma ChallengeSource configurada.");
             FinishSelection(onReady);
             return;
         }
 
-        WordDifficulty? targetDifficulty = DifficultyManager.Instance != null && DifficultyManager.Instance.adjustmentSystemType == AdjustmentSystemType.InRealTime?
-        DifficultyManager.Instance.CurrentProfile.wordDifficulty : null;
-
-        provider.RequestWord(IsPlayableWord, targetDifficulty, challenge =>
+        challengeSource.RequestChallenge(IsPlayableWord, (word, challengeId) =>
         {
-            if (challenge != null)
-            {
-                ApplyChallenge(challenge);
-            }
-            else
-            {
-                ApplyLocalWord();
-            }
-
+            ApplyChallenge(word, challengeId);
             FinishSelection(onReady);
         });
     }
@@ -141,97 +130,17 @@ public class ChasingLettersGameManager : MonoBehaviour
         onReady?.Invoke();
     }
 
-    private void ApplyChallenge(WordChallenge challenge)
+    private void ApplyChallenge(string word, string challengeId)
     {
-        CurrentChallengeId = challenge.challengeId;
-        targetWord = challenge.word;
+        CurrentChallengeId = challengeId;
 
-        if (currentWordImageUI != null && challenge.image != null)
-        {
-            currentWordImageUI.sprite = challenge.image;
-            currentWordImageUI.preserveAspect = true;
-        }
+        if (string.IsNullOrEmpty(word)) return;
+
+        targetWord = word;
 
         if (hintText != null)
         {
-            hintText.text = challenge.word;
-        }
-    }
-
-    private void ApplyLocalWord()
-    {
-        CurrentChallengeId = null;
-
-        if (levelWords == null || levelWords.Length == 0) return;
-
-        if (availableWords.Count == 0) refillAvailableWords();
-
-        WordDifficulty? targetDifficulty = DifficultyManager.Instance != null && DifficultyManager.Instance.adjustmentSystemType == AdjustmentSystemType.InRealTime?
-        DifficultyManager.Instance.CurrentProfile.wordDifficulty : null;
-
-        WordData selectedData = SelectAndRemoveWord(targetDifficulty) ?? SelectAndRemoveWord(null);
-
-        if (selectedData == null)
-        {
-            Debug.LogError("[ChasingLettersGameManager] Nenhuma palavra local cabe nas mesas disponíveis.");
-            return;
-        }
-
-        targetWord = selectedData.targetWord.ToUpperInvariant();
-
-        if (currentWordImageUI != null && selectedData.wordImage != null)
-        {
-            currentWordImageUI.sprite = selectedData.wordImage;
-        }
-
-        if (hintText != null)
-        {
-            hintText.text = targetWord;
-        }
-    }
-
-    // Percorre as palavras disponíveis em ordem aleatória. Palavras que não cabem nas mesas são descartadas
-    private WordData SelectAndRemoveWord(WordDifficulty? targetDifficulty)
-    {
-        List<int> skipped = new List<int>();
-
-        while (availableWords.Count > 0)
-        {
-            int randomIndex = UnityEngine.Random.Range(0, availableWords.Count);
-            int wordIndex = availableWords[randomIndex];
-            WordData candidate = levelWords[wordIndex];
-
-            if (candidate == null || !IsPlayableWord(candidate.targetWord))
-            {
-                availableWords.RemoveAt(randomIndex);
-                continue;
-            }
-
-            if (targetDifficulty.HasValue && candidate.difficulty != targetDifficulty.Value)
-            {
-                availableWords.RemoveAt(randomIndex);
-                skipped.Add(wordIndex);
-                continue;
-            }
-
-            availableWords.RemoveAt(randomIndex);
-            availableWords.AddRange(skipped);
-            return candidate;
-        }
-
-        availableWords.AddRange(skipped);
-        return null;
-    }
-
-    public void refillAvailableWords()
-    {
-        if(levelWords != null && levelWords.Length != 0)
-        {
-            availableWords.Clear();
-            for(int i=0; i<levelWords.Length; i++)
-            {
-                availableWords.Add(i);
-            }
+            hintText.text = word;
         }
     }
 }
