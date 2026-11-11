@@ -25,6 +25,8 @@ public class ChasingLettersGameManager : MonoBehaviour
     [Header("Challenge Source")]
     [SerializeField] private ChallengeSource challengeSource;
 
+    public string GameMode => challengeSource != null ? challengeSource.GameMode : "";
+
     public string LetterPool => challengeSource != null ? challengeSource.LetterPool : Alphabet;
 
     public int GetCorrectLetterChance(int profileChance) => challengeSource != null ? challengeSource.GetCorrectLetterChance(profileChance) : profileChance;

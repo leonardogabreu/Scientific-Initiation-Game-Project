@@ -10,6 +10,8 @@ public class WordImageChallengeSource : ChallengeSource
     private List<int> availableWords = new List<int>();    // List of words that have not been selected yet
     public Image currentWordImageUI;
 
+    public override string GameMode => "word_image";
+
     void Awake()
     {
         levelWords = Resources.LoadAll<WordData>("WordData");

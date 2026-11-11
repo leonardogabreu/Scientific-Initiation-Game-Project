@@ -22,6 +22,8 @@ public class AudioWordChallengeSource : ChallengeSource
     private string letterPool = "";
     private Coroutine playRoutine;
 
+    public override string GameMode => "audio_word";
+
     public override string LetterPool => string.IsNullOrEmpty(letterPool) ? base.LetterPool : letterPool;
 
     public override int GetCorrectLetterChance(int profileChance) => correctLetterChance;
@@ -81,6 +83,13 @@ public class AudioWordChallengeSource : ChallengeSource
 
     public void PlayCurrentWord()
     {
+        DataCollectionManager.Instance?.RegisterAudioReplay();
+
+        PlayWordAudio();
+    }
+
+    private void PlayWordAudio()
+    {
         StopScheduledPlay();
 
         if (audioSource == null || currentWord == null || currentWord.audioClip == null) return;
@@ -123,7 +132,7 @@ public class AudioWordChallengeSource : ChallengeSource
         yield return new WaitForSeconds(delay);
 
         playRoutine = null;
-        PlayCurrentWord();
+        PlayWordAudio();
     }
 
     private void StopScheduledPlay()

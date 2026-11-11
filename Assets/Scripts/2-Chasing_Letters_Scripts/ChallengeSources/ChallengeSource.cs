@@ -3,6 +3,8 @@ using UnityEngine;
 
 public abstract class ChallengeSource : MonoBehaviour
 {
+    public abstract string GameMode { get; }
+
     public virtual string LetterPool => ChasingLettersGameManager.Alphabet;
 
     public virtual int GetCorrectLetterChance(int profileChance) => profileChance;
