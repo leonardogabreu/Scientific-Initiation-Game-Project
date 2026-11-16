@@ -27,7 +27,13 @@ public class ChasingLettersGameManager : MonoBehaviour
 
     public string GameMode => challengeSource != null ? challengeSource.GameMode : "";
 
-    public string LetterPool => challengeSource != null ? challengeSource.LetterPool : Alphabet;
+    public List<string> TargetPieces { get; private set; } = new List<string>();
+
+    public List<string> PiecePool => challengeSource != null ? challengeSource.PiecePool : ChallengeSource.SplitIntoLetters(Alphabet);
+
+    public List<string> GetPieces(string word) => challengeSource != null ? challengeSource.GetPieces(word) : ChallengeSource.SplitIntoLetters(word);
+
+    public Sprite GetPieceImage(string piece) => challengeSource != null ? challengeSource.GetPieceImage(piece) : null;
 
     public int GetCorrectLetterChance(int profileChance) => challengeSource != null ? challengeSource.GetCorrectLetterChance(profileChance) : profileChance;
 
@@ -105,7 +111,7 @@ public class ChasingLettersGameManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(word)) return false;
 
-        return tables == null || tables.CanFitWord(word.Length);
+        return tables == null || tables.CanFitWord(GetPieces(word).Count);
     }
 
     public void SelectNewWord(Action onReady = null)
@@ -141,6 +147,7 @@ public class ChasingLettersGameManager : MonoBehaviour
         if (string.IsNullOrEmpty(word)) return;
 
         targetWord = word;
+        TargetPieces = GetPieces(word);
 
         if (hintText != null)
         {

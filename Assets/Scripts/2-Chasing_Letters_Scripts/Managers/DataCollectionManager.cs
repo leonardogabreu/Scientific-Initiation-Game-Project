@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -303,8 +304,8 @@ public class DataCollectionManager : MonoBehaviour
 
     private bool IsLetterInRightSlot(string letter, int slot)
     {
-        string word = currentWordAttempt.targetWord;
-        return slot >= 0 && slot < word.Length && letter == word[slot].ToString();
+        List<string> pieces = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.GetPieces(currentWordAttempt.targetWord) : ChallengeSource.SplitIntoLetters(currentWordAttempt.targetWord);
+        return slot >= 0 && slot < pieces.Count && letter == pieces[slot];
     }
 
     public void ReportSessionFinished()

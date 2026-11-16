@@ -5,4 +5,5 @@ public class AudioWord : ScriptableObject
 {
     public string targetWord;
     public AudioClip audioClip;
+    public Sprite wordImage;
 }

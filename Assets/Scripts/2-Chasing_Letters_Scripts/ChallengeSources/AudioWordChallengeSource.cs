@@ -198,12 +198,12 @@ public class AudioWordChallengeSource : ChallengeSource
         }
     }
 
-    private bool IsValidWord(AudioWord audioWord)
+    protected virtual bool IsValidWord(AudioWord audioWord)
     {
         return audioWord != null && audioWord.audioClip != null && GetNormalizedWord(audioWord) != null;
     }
 
-    private string GetNormalizedWord(AudioWord audioWord)
+    protected string GetNormalizedWord(AudioWord audioWord)
     {
         if (audioWord == null) return null;
 

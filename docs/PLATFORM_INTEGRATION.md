@@ -86,9 +86,12 @@ carregam `session_number`.
 `challenge_id` vem vazio quando a palavra veio do banco local. `time` é em segundos, contado a
 partir do início da palavra (ou da sessão, em `finish_session`).
 
-`game_mode` diz de qual fase vieram os dados: `word_image` (montar a palavra da imagem) ou
-`audio_word` (fase de escuta: montar a palavra ouvida). Na fase de escuta, `audio_replays` conta
-só os toques pedidos pelo aluno, não os automáticos do início de cada palavra.
+`game_mode` diz de qual fase vieram os dados: `word_image` (montar a palavra da imagem),
+`audio_word` (fase de escuta: montar a palavra ouvida) ou `audio_image` (fase de figuras: ouvir a
+palavra e entregar a figura certa). Em `audio_image` cada caixa é uma figura inteira, então os
+campos de letra (`letter` nos eventos de pegar, soltar e trocar) trazem a palavra da figura, como
+`GATO`. Nas fases de áudio, `audio_replays` conta só os toques pedidos pelo aluno, não os
+automáticos do início de cada palavra.
 
 Em `word_mistake`, `complete: false` marca a entrega feita com mesas ainda vazias — é ruído de
 manuseio, não erro de conteúdo, e vale filtrar na análise.
