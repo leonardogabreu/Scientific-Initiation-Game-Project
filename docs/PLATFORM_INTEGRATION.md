@@ -71,19 +71,27 @@ carregam `session_number`.
 
 | `event_type` | Quando | Campos além de `session_number` |
 | --- | --- | --- |
-| `start_session` | aluno aperta jogar | `school_id`, `discipline`, `subarea`, `words_to_win` |
-| `start_word` | palavra da rodada definida | `word_index`, `challenge_id`, `word`, `word_length`, `source` (`platform`/`local`) |
+| `start_session` | aluno aperta jogar | `school_id`, `discipline`, `subarea`, `words_to_win`, `game_mode` |
+| `start_word` | palavra da rodada definida | `word_index`, `challenge_id`, `word`, `word_length`, `source` (`platform`/`local`), `game_mode` |
 | `letter_picked` | aluno pega uma letra | `word_index`, `challenge_id`, `word`, `letter`, `source` (`belt`/`table`), `slot`, `action_index`, `time` |
 | `letter_placed` | aluno põe a letra numa mesa | idem, com `source` = `hand` |
 | `letter_swapped` | aluno troca a letra carregada pela de uma caixa ou mesa | idem, mais `given_letter` (a que ficou no lugar); `letter` é a que passou a carregar |
 | `letter_discarded` | aluno joga a letra no lixo | idem, com `slot` = -1 |
 | `word_mistake` | entrega errada na zona de submit | `word_index`, `challenge_id`, `word`, `submitted_word`, `mistake_number`, `complete`, `time` |
 | `hint_used` | aluno pede dica | `word_index`, `challenge_id`, `word`, `hint_number`, `time` |
-| `word_completed` | palavra montada corretamente | `word_index`, `challenge_id`, `word`, `mistakes`, `hints`, `actions`, `time`, `first_try` |
+| `audio_replayed` | aluno aperta o botão para ouvir a palavra de novo (só na fase de escuta) | `word_index`, `challenge_id`, `word`, `replay_number`, `time` |
+| `word_completed` | palavra montada corretamente | `word_index`, `challenge_id`, `word`, `mistakes`, `hints`, `actions`, `time`, `first_try`, `audio_replays` |
 | `finish_session` | última palavra concluída | `words_completed`, `total_mistakes`, `total_time` |
 
 `challenge_id` vem vazio quando a palavra veio do banco local. `time` é em segundos, contado a
 partir do início da palavra (ou da sessão, em `finish_session`).
+
+`game_mode` diz de qual fase vieram os dados: `word_image` (montar a palavra da imagem),
+`audio_word` (fase de escuta: montar a palavra ouvida) ou `audio_image` (fase de figuras: ouvir a
+palavra e entregar a figura certa). Em `audio_image` cada caixa é uma figura inteira, então os
+campos de letra (`letter` nos eventos de pegar, soltar e trocar) trazem a palavra da figura, como
+`GATO`. Nas fases de áudio, `audio_replays` conta só os toques pedidos pelo aluno, não os
+automáticos do início de cada palavra.
 
 Em `word_mistake`, `complete: false` marca a entrega feita com mesas ainda vazias — é ruído de
 manuseio, não erro de conteúdo, e vale filtrar na análise.

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -48,7 +49,9 @@ public class DataCollectionManager : MonoBehaviour
             discipline = session?.Discipline ?? "",
             subarea = session?.Subarea ?? "",
             words_to_win = wordsToWin,
-            correct_letter_chance = DifficultyManager.Instance.CurrentProfile.correctLetterChance,
+            correct_letter_chance = ChasingLettersGameManager.Instance != null
+                ? ChasingLettersGameManager.Instance.GetCorrectLetterChance(DifficultyManager.Instance.CurrentProfile.correctLetterChance)
+                : DifficultyManager.Instance.CurrentProfile.correctLetterChance,
             min_spawn_time = DifficultyManager.Instance.CurrentProfile.minSpawnTime,
             max_spawn_time = DifficultyManager.Instance.CurrentProfile.maxSpawnTime,
             treadmill_speed = DifficultyManager.Instance.CurrentProfile.treadmillSpeed,
@@ -56,7 +59,8 @@ public class DataCollectionManager : MonoBehaviour
             hint_display_time = DifficultyManager.Instance.CurrentProfile.hintDisplayTime,
             hint_cooldown = DifficultyManager.Instance.CurrentProfile.hintCooldown,
             word_difficulty = DifficultyManager.Instance.CurrentProfile.wordDifficulty.ToString(),
-            adjustment_system_type = DifficultyManager.Instance.adjustmentSystemType.ToString()
+            adjustment_system_type = DifficultyManager.Instance.adjustmentSystemType.ToString(),
+            game_mode = GameMode
         });
     }
 
@@ -78,7 +82,8 @@ public class DataCollectionManager : MonoBehaviour
             challenge_id = challengeId ?? "",
             word = word,
             word_length = word?.Length ?? 0,
-            source = challengeId != null ? "platform" : "local"
+            source = challengeId != null ? "platform" : "local",
+            game_mode = GameMode
         });
     }
 
@@ -234,6 +239,23 @@ public class DataCollectionManager : MonoBehaviour
         DifficultyManager.Instance.RegisterCollectedData(MetricType.TimeUntilHint, timeSinceHintAvailable);
     }
 
+    public void RegisterAudioReplay()
+    {
+        if (currentWordAttempt == null) return;
+
+        currentWordAttempt.audioReplaysCount++;
+
+        GameEventReporter.Instance?.Report("audio_replayed", new AudioReplayedPayload
+        {
+            session_number = SessionNumber,
+            word_index = currentWordAttempt.wordIndex,
+            challenge_id = currentWordAttempt.challengeId ?? "",
+            word = currentWordAttempt.targetWord,
+            replay_number = currentWordAttempt.audioReplaysCount,
+            time = ElapsedOnWord
+        });
+    }
+
     public void CountSavedOrBurnedLetters(bool saved)
     {
         if(currentWordAttempt == null) return;
@@ -268,7 +290,8 @@ public class DataCollectionManager : MonoBehaviour
             useful_letters_burned = currentWordAttempt.usefulLettersBurned,
             actions = currentWordAttempt.actionsCount,
             time = currentWordAttempt.timeSpent,
-            first_try = firstTry
+            first_try = firstTry,
+            audio_replays = currentWordAttempt.audioReplaysCount
         });
 
         ChasingLettersApiManager.Instance?.SubmitResponse(currentWordAttempt.challengeId, true);
@@ -281,8 +304,8 @@ public class DataCollectionManager : MonoBehaviour
 
     private bool IsLetterInRightSlot(string letter, int slot)
     {
-        string word = currentWordAttempt.targetWord;
-        return slot >= 0 && slot < word.Length && letter == word[slot].ToString();
+        List<string> pieces = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.GetPieces(currentWordAttempt.targetWord) : ChallengeSource.SplitIntoLetters(currentWordAttempt.targetWord);
+        return slot >= 0 && slot < pieces.Count && letter == pieces[slot];
     }
 
     public void ReportSessionFinished()
@@ -307,6 +330,8 @@ public class DataCollectionManager : MonoBehaviour
 
     private float ElapsedOnWord => Time.time - wordStartTime;
 
+    private string GameMode => ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.GameMode : "";
+
     [System.Serializable]
     private class StartSessionPayload
     {
@@ -324,6 +349,7 @@ public class DataCollectionManager : MonoBehaviour
         public float hint_cooldown;
         public string word_difficulty;
         public string adjustment_system_type;
+        public string game_mode;
     }
 
     [System.Serializable]
@@ -335,6 +361,7 @@ public class DataCollectionManager : MonoBehaviour
         public string word;
         public int word_length;
         public string source;
+        public string game_mode;
     }
 
     [System.Serializable]
@@ -392,6 +419,17 @@ public class DataCollectionManager : MonoBehaviour
     }
 
     [System.Serializable]
+    private class AudioReplayedPayload
+    {
+        public int session_number;
+        public int word_index;
+        public string challenge_id;
+        public string word;
+        public int replay_number;
+        public float time;
+    }
+
+    [System.Serializable]
     private class WordCompletedPayload
     {
         public int session_number;
@@ -405,6 +443,7 @@ public class DataCollectionManager : MonoBehaviour
         public int actions;
         public float time;
         public bool first_try;
+        public int audio_replays;
     }
 
     [System.Serializable]

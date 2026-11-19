@@ -7,9 +7,6 @@ public class LetterBoxSpawner : MonoBehaviour
     [Header("Letter rotation parameters")]
     [SerializeField] private bool isALeftSpawner;
     private int letterRotationFixingConst;
-    private const float LetterHeightOffset = 0.51f;
-    private const float LetterDepthOffset = 0.34f;
-    private const float LetterSideOffset = 0.1f;
 
     [Header("Time parameters")] 
     [SerializeField] private float spawnTimer = 1f;
@@ -19,7 +16,7 @@ public class LetterBoxSpawner : MonoBehaviour
 
     [Header("Random Letter parameters")] 
     [SerializeField] private int correctLetterChance = 70;
-    private List<char> currentWordLettersList = new List<char>();
+    private List<string> currentWordLettersList = new List<string>();
     private string lastTrackedWord = "";
 
     void Start()
@@ -56,10 +53,7 @@ public class LetterBoxSpawner : MonoBehaviour
 
                     if (letterText != null)
                     {
-                        letterText.text = GetWeightedRandomLetter();   
-                        // A lot of bug correction from the letter position and rotation, with very specific numbers
-                        letterText.transform.localRotation = Quaternion.Euler(90, letterRotationFixingConst * 90, 0);
-                        letterText.transform.localPosition = new Vector3(-letterRotationFixingConst * LetterSideOffset, LetterHeightOffset, -letterRotationFixingConst * LetterDepthOffset);
+                        letterText.text = GetWeightedRandomLetter();
 
                         letter.SetActive(true);
                     }
@@ -80,9 +74,10 @@ public class LetterBoxSpawner : MonoBehaviour
     {
         int roll = Random.Range(0, 100);
         string currentWord = ChasingLettersGameManager.Instance?.targetWord;
+        int letterChance = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.GetCorrectLetterChance(correctLetterChance) : correctLetterChance;
 
         // If the roll is within the percentage and the word is valid, pick a letter from the target word
-        if (roll < correctLetterChance && !string.IsNullOrEmpty(currentWord) && currentWordLettersList != null)
+        if (roll < letterChance &&!string.IsNullOrEmpty(currentWord) && currentWordLettersList != null)
         {
             // If the list is empty or the word has changed (new word)
             if (currentWordLettersList.Count == 0 || currentWord != lastTrackedWord) 
@@ -92,7 +87,7 @@ public class LetterBoxSpawner : MonoBehaviour
             }
 
             int randomIndex = Random.Range(0, currentWordLettersList.Count);
-            string letterToSpawn = currentWordLettersList[randomIndex].ToString().ToUpper();
+            string letterToSpawn = currentWordLettersList[randomIndex].ToUpper();
             currentWordLettersList.RemoveAt(randomIndex);
 
         return letterToSpawn;
@@ -100,8 +95,9 @@ public class LetterBoxSpawner : MonoBehaviour
         else 
         {
             // Pick a completely random letter from the alphabet array
-            int randomIndex = Random.Range(0, ChasingLettersGameManager.Alphabet.Length);
-            return ChasingLettersGameManager.Alphabet[randomIndex].ToString();
+            List<string> letterPool = ChasingLettersGameManager.Instance != null ? ChasingLettersGameManager.Instance.PiecePool : ChallengeSource.SplitIntoLetters(ChasingLettersGameManager.Alphabet);
+            int randomIndex = Random.Range(0, letterPool.Count);
+            return letterPool[randomIndex];
         }
     }
 
@@ -166,12 +162,12 @@ public class LetterBoxSpawner : MonoBehaviour
 
     private void FillCurrentWordLettersList()
     {
-        if (currentWordLettersList != null && ChasingLettersGameManager.Instance != null && ChasingLettersGameManager.Instance.targetWord != null)
+        if (currentWordLettersList != null && ChasingLettersGameManager.Instance != null && ChasingLettersGameManager.Instance.TargetPieces != null)
         {
             currentWordLettersList.Clear();
-            for (int i = 0; i < ChasingLettersGameManager.Instance.targetWord.Length; i++)
+            for (int i = 0; i < ChasingLettersGameManager.Instance.TargetPieces.Count; i++)
             {
-                currentWordLettersList.Add(ChasingLettersGameManager.Instance.targetWord[i]);
+                currentWordLettersList.Add(ChasingLettersGameManager.Instance.TargetPieces[i]);
             }
         }
     }

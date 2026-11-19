@@ -36,7 +36,7 @@ public class SubmitZoneManager : MonoBehaviour
 
         // Slot vazio não contribui caractere nenhum: entrega com mesas pela metade dá uma
         // palavra mais curta. Isso é entrega incompleta, não erro de conteúdo.
-        bool isCompleteAttempt = submittedWord.Length == ChasingLettersGameManager.Instance?.targetWord?.Length;
+        bool isCompleteAttempt = deliverTablesManager.GetBuiltPieces().Count == ChasingLettersGameManager.Instance?.TargetPieces.Count;
 
         if (deliverTablesManager.CheckSubmit())
         {

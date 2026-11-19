@@ -50,7 +50,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4626518573753429974, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.041000012
+      value: 0.029000025
       objectReference: {fileID: 0}
     - target: {fileID: 4626518573753429974, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -70,11 +70,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4626518573753429974, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 0.00000011253358
       objectReference: {fileID: 0}
     - target: {fileID: 4626518573753429974, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.0000000049993396
+      value: 0.000018390427
       objectReference: {fileID: 0}
     - target: {fileID: 4626518573753429974, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -94,7 +94,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5492294129789586358, guid: 67f5386a7ff426d96b4c996085ee172c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -311,6 +311,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f3c2e799c0e7fad6b73e2047a236c94, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7293679315545814151}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6f3c2e799c0e7fad6b73e2047a236c94, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8477675957297590042}
   m_SourcePrefab: {fileID: 100100000, guid: 6f3c2e799c0e7fad6b73e2047a236c94, type: 3}
 --- !u!1 &7092388487691584456 stripped
 GameObject:
@@ -373,6 +376,26 @@ MonoBehaviour:
   type: 2
   interactionPromptText: {fileID: 2425895271644591685}
   letterText: {fileID: 9060900951623041715}
+--- !u!114 &8477675957297590042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7092388487691584456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!4 &7577000074159135090 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6f3c2e799c0e7fad6b73e2047a236c94, type: 3}

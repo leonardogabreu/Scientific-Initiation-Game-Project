@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -65,7 +66,7 @@ public class DeliverTablesManager : MonoBehaviour
     {
         if (ChasingLettersGameManager.Instance == null || ChasingLettersGameManager.Instance.targetWord == null) return null;
 
-        return GetTablesListForLength(ChasingLettersGameManager.Instance.targetWord.Length);
+        return GetTablesListForLength(ChasingLettersGameManager.Instance.TargetPieces.Count);
     }
 
     private GameObject[] GetTablesListForLength(int wordLength)
@@ -83,7 +84,7 @@ public class DeliverTablesManager : MonoBehaviour
         GameObject[] tables = GetTablesListForWord();
         if (tables == null || table == null) return -1;
 
-        int wordLength = ChasingLettersGameManager.Instance.targetWord.Length;
+        int wordLength = ChasingLettersGameManager.Instance.TargetPieces.Count;
         if (wordLength <= 0 || wordLength > tables.Length) return -1;
 
         int startIndex = (tables.Length - wordLength) / 2;
@@ -109,11 +110,11 @@ public class DeliverTablesManager : MonoBehaviour
         GameObject[] tables = GetTablesListForWord();
         if (tables == null) return;
 
-        int wordLength = ChasingLettersGameManager.Instance.targetWord.Length;
+        int wordLength = ChasingLettersGameManager.Instance.TargetPieces.Count;
 
         if (wordLength > tables.Length)
         {
-            Debug.LogError($"[DeliverTablesManager] Palavra '{ChasingLettersGameManager.Instance.targetWord}' ({wordLength} letras) excede o número de mesas disponíveis ({tables.Length}).");
+            Debug.LogError($"[DeliverTablesManager] Palavra '{ChasingLettersGameManager.Instance.targetWord}' ({wordLength} peças) excede o número de mesas disponíveis ({tables.Length}).");
             return;
         }
 
@@ -129,16 +130,21 @@ public class DeliverTablesManager : MonoBehaviour
     /// <summary>A palavra montada nas mesas, ou string vazia se ainda não há mesas ativas.</summary>
     public string GetBuiltWord()
     {
-        GameObject[] tables = GetTablesListForWord();
-        if (tables == null) return "";
+        return string.Concat(GetBuiltPieces());
+    }
 
-        int wordLength = ChasingLettersGameManager.Instance.targetWord.Length;
-        if (wordLength <= 0 || wordLength > tables.Length) return "";
+    public List<string> GetBuiltPieces()
+    {
+        List<string> builtPieces = new List<string>();
+
+        GameObject[] tables = GetTablesListForWord();
+        if (tables == null) return builtPieces;
+
+        int wordLength = ChasingLettersGameManager.Instance.TargetPieces.Count;
+        if (wordLength <= 0 || wordLength > tables.Length) return builtPieces;
 
         int startIndex = (tables.Length - wordLength) / 2;
         int limit = startIndex + wordLength;
-
-        string builtWord = "";
 
         for (int i = startIndex; i < limit; i++)
         {
@@ -153,13 +159,13 @@ public class DeliverTablesManager : MonoBehaviour
             InteractableCL interactableCL = letterBox.GetComponent<InteractableCL>();
             TMP_Text textComponent = interactableCL != null ? interactableCL.LetterText : null;
 
-            if (textComponent != null)
+            if (textComponent != null && !string.IsNullOrEmpty(textComponent.text))
             {
-                builtWord += textComponent.text;
+                builtPieces.Add(textComponent.text.ToUpper());
             }
         }
 
-        return builtWord.ToUpper();
+        return builtPieces;
     }
 
     // Classifica a letra que o player está segurando
@@ -167,39 +173,41 @@ public class DeliverTablesManager : MonoBehaviour
     {
         if(string.IsNullOrEmpty(text)) return false;
 
-        bool result = IsLetterUsefull(text[0], pc, false);
+        bool result = IsLetterUsefull(text, pc, false);
 
-        return result; 
-    } 
-    
+        return result;
+    }
+
     // Classifica letras próximas
     public bool IsNearbyLetterUsefull(InteractableCL letter, PlayerControllerCL pc)
     {
-        if (letter == null) return false;
+        if (letter == null || string.IsNullOrEmpty(letter.LetterText.text)) return false;
 
-        return IsLetterUsefull(letter.LetterText.text[0], pc, true);
+        return IsLetterUsefull(letter.LetterText.text, pc, true);
     }
 
     // Helper; mesma lógica para a letra segurada e para a letra próxima: só muda como pegar esses textos
-    private bool IsLetterUsefull(char letterChar, PlayerControllerCL pc, bool discountHeldLetter)
+    private bool IsLetterUsefull(string piece, PlayerControllerCL pc, bool discountHeldLetter)
     {
         if(pc == null) pc = FindAnyObjectByType<PlayerControllerCL>();
         if(pc == null) return false;
 
-        string targetWord = ChasingLettersGameManager.Instance.targetWord;
-        string builtWord = GetBuiltWord();
+        piece = piece.ToUpper();
+
+        List<string> targetPieces = ChasingLettersGameManager.Instance.TargetPieces;
+        List<string> builtPieces = GetBuiltPieces();
 
         int countTarget = 0;
-        foreach (char c in targetWord)
+        foreach (string p in targetPieces)
         {
-            if (c == letterChar)
+            if (p == piece)
                 countTarget++;
         }
 
         int countBuilt = 0;
-        foreach (char c in builtWord)
+        foreach (string p in builtPieces)
         {
-            if (c == letterChar)
+            if (p == piece)
                 countBuilt++;
         }
 
@@ -212,9 +220,7 @@ public class DeliverTablesManager : MonoBehaviour
 
         if(string.IsNullOrEmpty(heldLetter)) return countBuilt < countTarget;
 
-        char heldChar = heldLetter[0];
-
-        if(heldChar == letterChar) return countBuilt + 1 < countTarget;
+        if(heldLetter.ToUpper() == piece) return countBuilt + 1 < countTarget;
         return countBuilt < countTarget;
     }
 

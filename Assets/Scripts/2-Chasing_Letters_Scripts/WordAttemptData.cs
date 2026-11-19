@@ -11,4 +11,5 @@ public class WordAttemptData
     public int usefulLettersBurned = 0;
     public int distinctMistakesCount = 0;
     public string lastCountedMistakeWord = null;
+    public int audioReplaysCount = 0;
 }
