@@ -3709,14 +3709,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1487945507}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.0000029418059, y: 0.99144495, z: 0.13052587, w: 0.0000004191824}
+  m_LocalRotation: {x: -0.0000028619238, y: 1, z: -0.00000008940696, w: 0.000000799578}
   m_LocalPosition: {x: -0.01, y: 0.933, z: 0.5226349}
   m_LocalScale: {x: 0.46999997, y: 0.46999997, z: 0.46999997}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2122722169}
   m_Father: {fileID: 680293287}
-  m_LocalEulerAnglesHint: {x: -165, y: 0, z: 180}
+  m_LocalEulerAnglesHint: {x: -180, y: 0, z: 180}
 --- !u!65 &1487945509
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3809,6 +3809,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PieceImageDisplay
   pieceText: {fileID: 2122722167}
   pieceImage: {fileID: 1009566259}
+  faceHeight: 0
+  faceForward: 0.25
+  imageSize: 3.5
 --- !u!1 &1499854805
 GameObject:
   m_ObjectHideFlags: 0
@@ -4897,8 +4900,8 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: c6e8283c53d8b95198b39b9fdb4b05f4, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: 9b7c3d0dfa8888865878d74e21601ffa, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4967,7 +4970,7 @@ MonoBehaviour:
   _SortingLayer: 0
   _SortingLayerID: 0
   _SortingOrder: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_renderer: {fileID: 2122722168}
   m_maskType: 0
 --- !u!23 &2122722168
@@ -4995,7 +4998,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  - {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

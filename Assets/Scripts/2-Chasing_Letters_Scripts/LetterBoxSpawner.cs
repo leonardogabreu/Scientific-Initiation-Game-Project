@@ -7,9 +7,6 @@ public class LetterBoxSpawner : MonoBehaviour
     [Header("Letter rotation parameters")]
     [SerializeField] private bool isALeftSpawner;
     private int letterRotationFixingConst;
-    private const float LetterHeightOffset = 0.51f;
-    private const float LetterDepthOffset = 0.34f;
-    private const float LetterSideOffset = 0.1f;
 
     [Header("Time parameters")] 
     [SerializeField] private float spawnTimer = 1f;
@@ -56,10 +53,7 @@ public class LetterBoxSpawner : MonoBehaviour
 
                     if (letterText != null)
                     {
-                        letterText.text = GetWeightedRandomLetter();   
-                        // A lot of bug correction from the letter position and rotation, with very specific numbers
-                        letterText.transform.localRotation = Quaternion.Euler(90, letterRotationFixingConst * 90, 0);
-                        letterText.transform.localPosition = new Vector3(-letterRotationFixingConst * LetterSideOffset, LetterHeightOffset, -letterRotationFixingConst * LetterDepthOffset);
+                        letterText.text = GetWeightedRandomLetter();
 
                         letter.SetActive(true);
                     }
