@@ -14,11 +14,13 @@ reporte no final em vez de divergir dele.
 1. **Cena nova dedicada**: `Assets/Scenes/5-Tutorial.unity`. As fases de pesquisa (2, 3 e 4)
    não mudam de comportamento.
 2. **Uma letra por rodada**: toca o som da letra, mostra a letra na tela, e o ciclo completo
-   é pegar aquela letra na esteira e colocá-la na mesa. 3 rodadas por sessão (combina com as
-   3 estrelas do HUD).
-3. **Tecla errada não faz nada**: o jogo não avança, o ícone da tecla pedida pulsa e o áudio
+   é pegar aquela letra na esteira e colocá-la na mesa.
+3. **Sem fim** (ver "Modo infinito" abaixo): a letra e a posição da caixa são sorteadas a cada
+   rodada, as estrelas ciclam de 3 em 3 e quem encerra é a professora, pelo `Menu_Button` que já
+   vive no `PlayingPanel`. Só a letra pedida fica na esteira, então não existe como pegar errado.
+4. **Tecla errada não faz nada**: o jogo não avança, o ícone da tecla pedida pulsa e o áudio
    da letra toca de novo. Sem som de erro, sem punição.
-4. **Telemetria marcada como tutorial**: sobe para a plataforma com `game_mode: "tutorial"` e
+5. **Telemetria marcada como tutorial**: sobe para a plataforma com `game_mode: "tutorial"` e
    **não** alimenta o `DifficultyManager`.
 
 ## Como o jogo está montado hoje (contexto)
@@ -121,6 +123,29 @@ para fora de alcance, `LogWarning` quando outro interactible está mais perto qu
 Chegada: `!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance`, com timeout
 de segurança de 8 segundos (não escalado) que faz `agent.Warp(âncora)` e segue — o tutorial nunca
 pode ficar preso.
+
+## Modo infinito
+
+Ligado por `endlessMode` no `TutorialDirector` (padrão: ligado). O que muda:
+
+- A lista `rounds` deixa de ser a **sequência** e passa a ser o conjunto de **posições possíveis**
+  da caixa: de cada entrada só valem `letterBox`, `beltAnchor`, `table` e `tableAnchor`. A `letter`
+  e o `letterAudio` de cada entrada são ignorados, porque a letra é sorteada.
+- O pool de letras vem de `TutorialLetterLibrary`, que lê os `AudioWord` de
+  `Assets/Resources/AudioWords`. **Gravar um áudio novo e salvar o AudioWord nessa pasta já coloca
+  a letra no sorteio**, sem código e sem Inspector. Entram só assets com áudio, de uma letra e
+  dentro do alfabeto do jogo — as palavras inteiras da mesma pasta ficam de fora. Hoje são oito:
+  as cinco vogais mais B, C e D.
+- As primeiras `vowelOnlyRounds` rodadas (padrão 5) sorteiam só vogais; depois entram as demais.
+  Nunca repete a letra da rodada anterior quando há alternativa.
+- A posição gira pela lista a cada rodada. Como a tecla pedida é derivada da geometria, isso faz a
+  direção pedida variar em vez de ser sempre a mesma.
+- `GameCycleManager.addScore` não encerra a sessão durante o tutorial: a cada `wordsToWin` letras
+  as estrelas comemoram, zeram e recomeçam.
+- `CurrentRoundIndex` é a posição no ciclo (para o "X de 3" do overlay); `RoundsCompleted` é a
+  contagem que não zera, e é a que a telemetria usa.
+
+`endlessMode` desligado volta ao comportamento de lista fixa descrito no resto deste documento.
 
 ## Modelo de dados
 
