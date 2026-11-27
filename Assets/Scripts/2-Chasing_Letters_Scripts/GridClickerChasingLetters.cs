@@ -15,6 +15,9 @@ public class ChasingLettersGridClicker : MonoBehaviour
 
     void Update()
     {
+        // No modo tutorial não existe navegação livre: o TutorialDirector move o robô.
+        if (TutorialDirector.IsActive) return;
+
         if (gameCycleManager == null || gameCycleManager.currentGameState != GameStateCL.Playing) return;
 
         if (useKeyboardControls)

@@ -82,9 +82,11 @@ public class PlayerControllerCL : MonoBehaviour
         }
         lastPosition = transform.position;
 
-        if (Input.GetKeyDown(KeyCode.Space) && GameCycleManager.Instance != null && GameCycleManager.Instance.currentGameState == GameStateCL.Playing)
+        // No modo tutorial o TutorialDirector é o dono do input: ele chama
+        // TryInteractWithClosest() no passo certo, e este Space concorreria com ele no mesmo frame.
+        if (!TutorialDirector.IsActive && Input.GetKeyDown(KeyCode.Space) && GameCycleManager.Instance != null && GameCycleManager.Instance.currentGameState == GameStateCL.Playing)
         {
-            InteractWithClosest();
+            TryInteractWithClosest();
         }
 
         if (interactionEffectManager == null) return;
@@ -105,15 +107,19 @@ public class PlayerControllerCL : MonoBehaviour
         interactionEffectManager.InteractionEffect(interactible);
     }
 
-    private void InteractWithClosest()
+    /// <summary>
+    /// Interage com o interactible mais próximo, se houver, e devolve se interagiu com algo.
+    /// O TutorialDirector usa esse retorno para saber se o Space da criança valeu.
+    /// </summary>
+    public bool TryInteractWithClosest()
     {
         InteractableCL closestInteractable = GetClosestInteractible();
 
         // if found an interactible object, interacts with it
-        if (closestInteractable != null)
-        {
-            ExecuteInteraction(closestInteractable);
-        }
+        if (closestInteractable == null) return false;
+
+        ExecuteInteraction(closestInteractable);
+        return true;
     }
 
     private InteractableCL GetClosestInteractible()
