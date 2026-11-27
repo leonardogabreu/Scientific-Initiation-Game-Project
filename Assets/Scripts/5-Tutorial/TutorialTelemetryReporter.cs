@@ -131,7 +131,10 @@ public class TutorialTelemetryReporter : MonoBehaviour
         // A rodada em si já virou word_completed pelo SubmitZoneManager -> FinishWordAttempt;
         // aqui só fecha a contagem da rodada e deixa o resumo no Console, que é o que o
         // pesquisador confere no teste manual.
-        Debug.Log($"[TutorialTelemetry] Rodada {roundIndex + 1} concluída — " +
+        // RoundsCompleted não zera com o ciclo de estrelas do modo infinito; roundIndex sim.
+        int roundNumber = director != null ? director.RoundsCompleted : roundIndex + 1;
+
+        Debug.Log($"[TutorialTelemetry] Rodada {roundNumber} concluída — " +
                   $"{wrongKeysInRound} tecla(s) errada(s), {audioReplaysInRound} repetição(ões) de áudio.");
 
         wrongKeysInRound = 0;

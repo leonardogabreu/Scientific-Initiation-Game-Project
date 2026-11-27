@@ -115,7 +115,7 @@ public void changeGameState(GameStateCL gameStateCL)
     {
         correctWords++;
 
-        if(starsArray != null && starsOutlineArray != null)
+        if(starsArray != null && starsOutlineArray != null && correctWords - 1 < starsArray.Length)
         {
             starsArray[correctWords-1].SetActive(true);
             starsOutlineArray[correctWords-1].SetActive(false);
@@ -123,9 +123,28 @@ public void changeGameState(GameStateCL gameStateCL)
 
         if(correctWords >= wordsToWin)
         {
+            // O tutorial é sem fim: o ciclo de estrelas recomeça em vez de encerrar a sessão.
+            // A criança ganha uma vitória pequena a cada wordsToWin letras, repetidamente, e quem
+            // encerra é a professora pelo Menu_Button (que fica no PlayingPanel).
+            if (TutorialDirector.IsActive)
+            {
+                correctWords = 0;
+                resetStars();
+                return;
+            }
+
             changeGameState(GameStateCL.Over);
         }
 
+    }
+
+    /// <summary>Apaga as estrelas e devolve os contornos, para o ciclo seguinte do tutorial.</summary>
+    private void resetStars()
+    {
+        if (starsArray == null || starsOutlineArray == null) return;
+
+        foreach (GameObject star in starsArray) star.SetActive(false);
+        foreach (GameObject starOutline in starsOutlineArray) starOutline.SetActive(true);
     }
 
     public void StartGameFromButton()

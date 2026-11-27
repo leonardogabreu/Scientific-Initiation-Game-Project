@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -26,7 +27,16 @@ public class TutorialDirector : MonoBehaviour
     public static bool IsActive => Instance != null && Instance.IsRunning;
 
     [Header("Rodadas")]
+    [Tooltip("No modo infinito esta lista deixa de ser a sequência e passa a ser o conjunto de POSIÇÕES possíveis da caixa (letterBox/âncoras/mesa de cada entrada). A letra de cada entrada é ignorada: ela é sorteada.")]
     [SerializeField] private List<TutorialRound> rounds = new List<TutorialRound>();
+
+    [Header("Modo infinito")]
+    [Tooltip("Tutorial sem fim: a letra e a posição da caixa são sorteadas a cada rodada e a sessão só termina quando a professora sai pelo menu.")]
+    [SerializeField] private bool endlessMode = true;
+    [Tooltip("Quantas rodadas sorteiam só vogais antes de as outras letras entrarem. 0 = todas desde o começo.")]
+    [SerializeField] private int vowelOnlyRounds = 5;
+    [Tooltip("De quantas em quantas letras as estrelas completam um ciclo e recomeçam. Deve bater com o wordsToWin do GameCycleManager (Core.unity: 3).")]
+    [SerializeField] private int roundsPerCycle = 3;
 
     [Header("Cena")]
     [Tooltip("Opcionais: o robô mora na cena Core, então são resolvidos na cena em runtime se vazios.")]
@@ -65,7 +75,16 @@ public class TutorialDirector : MonoBehaviour
     /// <summary>Índice 0-based da rodada atual.</summary>
     public int CurrentRoundIndex { get; private set; }
 
-    public int TotalRounds => rounds != null ? rounds.Count : 0;
+    public int TotalRounds => endlessMode
+        ? Mathf.Max(1, roundsPerCycle)
+        : (rounds != null ? rounds.Count : 0);
+
+    /// <summary>
+    /// Rodadas concluídas desde o início da sessão. Diferente de CurrentRoundIndex, que no modo
+    /// infinito volta a zero a cada ciclo de estrelas: este não zera, e é o número que a
+    /// telemetria usa.
+    /// </summary>
+    public int RoundsCompleted { get; private set; }
 
     public string CurrentLetter => CurrentRound != null ? CurrentRound.letter : null;
 
@@ -110,10 +129,18 @@ public class TutorialDirector : MonoBehaviour
 
     private static KeyCode[] trackedKeys;
 
-    private TutorialRound CurrentRound =>
-        rounds != null && CurrentRoundIndex >= 0 && CurrentRoundIndex < rounds.Count
+    private TutorialRound CurrentRound => endlessMode
+        ? endlessRound
+        : (rounds != null && CurrentRoundIndex >= 0 && CurrentRoundIndex < rounds.Count
             ? rounds[CurrentRoundIndex]
-            : null;
+            : null);
+
+    /// <summary>A rodada montada em runtime no modo infinito: posição de um slot + letra sorteada.</summary>
+    private readonly TutorialRound endlessRound = new TutorialRound();
+
+    private List<TutorialLetterLibrary.Entry> letterPool;
+    private int slotCursor = -1;
+    private string lastLetter;
 
     void Awake()
     {
@@ -347,7 +374,26 @@ public class TutorialDirector : MonoBehaviour
 
         finishNotified = false;
         CurrentRoundIndex = 0;
+        RoundsCompleted = 0;
         IsRunning = true;
+
+        if (endlessMode)
+        {
+            letterPool = TutorialLetterLibrary.Load();
+
+            if (letterPool.Count == 0)
+            {
+                Debug.LogError(
+                    "[TutorialDirector] Modo infinito sem letras: nenhum AudioWord de uma letra com áudio em " +
+                    $"Resources/{TutorialLetterLibrary.ResourcesFolder}. O tutorial não vai começar.");
+                IsRunning = false;
+                return;
+            }
+
+            lastLetter = null;
+            slotCursor = -1;
+            PrepareEndlessRound();
+        }
 
         // Depois de uma sessão completa o targetWord ficou parado na letra da última rodada
         // (a entrega automática encadeia SelectNewWord() quando já não há rodada seguinte).
@@ -391,10 +437,12 @@ public class TutorialDirector : MonoBehaviour
 
         // CurrentRoundIndex avança dentro de RunRound (antes da entrega automática), porque é
         // dele que o TutorialChallengeSource tira a letra da rodada seguinte.
-        while (IsRunning && CurrentRoundIndex < rounds.Count)
+        // No modo infinito o while não tem fim: FinishTutorial só acontece via StopTutorial
+        // (troca de estado, sair pelo Menu_Button do PlayingPanel, descarregar a cena).
+        while (IsRunning && (endlessMode || CurrentRoundIndex < rounds.Count))
         {
             int roundIndex = CurrentRoundIndex;
-            TutorialRound round = rounds[roundIndex];
+            TutorialRound round = endlessMode ? endlessRound : rounds[roundIndex];
 
             if (round == null)
             {
@@ -484,7 +532,20 @@ public class TutorialDirector : MonoBehaviour
 
         // O índice avança ANTES da entrega: SubmitZoneManager.EvaluateWord() encadeia
         // SelectNewWord(), e o TutorialChallengeSource lê CurrentLetter para a próxima rodada.
-        CurrentRoundIndex = roundIndex + 1;
+        RoundsCompleted++;
+
+        if (endlessMode)
+        {
+            // O ciclo de estrelas recomeça: GameCycleManager.addScore zera o contador no tutorial
+            // em vez de encerrar a sessão, e o índice acompanha para o "X de 3" do overlay.
+            CurrentRoundIndex = RoundsCompleted % Mathf.Max(1, roundsPerCycle);
+            PrepareEndlessRound();
+        }
+        else
+        {
+            CurrentRoundIndex = roundIndex + 1;
+        }
+
         SubmitZoneManager.Instance?.EvaluateWord();
 
         onRoundCompleted?.Invoke(roundIndex);
@@ -734,6 +795,130 @@ public class TutorialDirector : MonoBehaviour
         }
 
         return KeyCode.None;
+    }
+
+    // -------------------------------------------------------- modo infinito
+
+    /// <summary>
+    /// Monta a rodada seguinte: sorteia a letra e a posição da caixa, escreve a letra na caixa
+    /// escolhida e esconde as outras.
+    ///
+    /// Como só a letra pedida fica na esteira, não existe como pegar errado. A variedade vem da
+    /// letra e de QUAL posição a caixa ocupa — e a posição faz a tecla de direção pedida mudar de
+    /// rodada para rodada, porque ela é derivada da geometria.
+    ///
+    /// Precisa rodar ANTES da entrega automática: SubmitZoneManager.EvaluateWord() encadeia
+    /// SelectNewWord(), e o TutorialChallengeSource lê CurrentLetter para montar as mesas.
+    /// </summary>
+    private void PrepareEndlessRound()
+    {
+        TutorialRound slot = NextSlot();
+
+        if (slot == null)
+        {
+            Debug.LogError("[TutorialDirector] Modo infinito sem posições: nenhuma entrada de 'Rodadas' tem letterBox.");
+            return;
+        }
+
+        endlessRound.letterBox = slot.letterBox;
+        endlessRound.beltAnchor = slot.beltAnchor;
+        endlessRound.table = slot.table;
+        endlessRound.tableAnchor = slot.tableAnchor;
+        endlessRound.keyToBeltOverride = slot.keyToBeltOverride;
+        endlessRound.keyToTableOverride = slot.keyToTableOverride;
+
+        TutorialLetterLibrary.Entry letter = NextLetter();
+
+        if (letter != null)
+        {
+            endlessRound.letter = letter.letter;
+            endlessRound.letterAudio = letter.clip;
+            lastLetter = letter.letter;
+        }
+
+        ShowOnlyTargetBox(endlessRound.letterBox, endlessRound.letter);
+    }
+
+    /// <summary>A próxima posição, girando pela lista para a tecla pedida não ser sempre a mesma.</summary>
+    private TutorialRound NextSlot()
+    {
+        if (rounds == null || rounds.Count == 0) return null;
+
+        List<TutorialRound> usable = new List<TutorialRound>();
+
+        foreach (TutorialRound candidate in rounds)
+        {
+            if (candidate != null && candidate.letterBox != null) usable.Add(candidate);
+        }
+
+        if (usable.Count == 0) return null;
+
+        slotCursor = (slotCursor + 1) % usable.Count;
+
+        return usable[slotCursor];
+    }
+
+    /// <summary>
+    /// A próxima letra. As primeiras <c>vowelOnlyRounds</c> rodadas sorteiam só vogais; depois
+    /// entram todas as letras que têm áudio gravado. Evita repetir a letra anterior quando há
+    /// alternativa — com uma única letra no pool, repetir é o único caminho.
+    /// </summary>
+    private TutorialLetterLibrary.Entry NextLetter()
+    {
+        if (letterPool == null || letterPool.Count == 0) return null;
+
+        bool vowelsOnly = RoundsCompleted < vowelOnlyRounds;
+
+        List<TutorialLetterLibrary.Entry> candidates = CollectLetters(vowelsOnly, lastLetter);
+
+        if (candidates.Count == 0) candidates = CollectLetters(vowelsOnly, null);
+        if (candidates.Count == 0) candidates = CollectLetters(false, null);
+        if (candidates.Count == 0) return null;
+
+        return candidates[UnityEngine.Random.Range(0, candidates.Count)];
+    }
+
+    private List<TutorialLetterLibrary.Entry> CollectLetters(bool vowelsOnly, string letterToAvoid)
+    {
+        List<TutorialLetterLibrary.Entry> candidates = new List<TutorialLetterLibrary.Entry>();
+
+        foreach (TutorialLetterLibrary.Entry entry in letterPool)
+        {
+            if (vowelsOnly && !TutorialLetterLibrary.IsVowel(entry.letter)) continue;
+            if (letterToAvoid != null && entry.letter == letterToAvoid) continue;
+
+            candidates.Add(entry);
+        }
+
+        return candidates;
+    }
+
+    /// <summary>Deixa na esteira só a caixa desta rodada, com a letra pedida escrita nela.</summary>
+    private void ShowOnlyTargetBox(GameObject target, string letter)
+    {
+        if (rounds == null) return;
+
+        foreach (TutorialRound slot in rounds)
+        {
+            if (slot == null || slot.letterBox == null || slot.letterBox == target) continue;
+
+            slot.letterBox.SetActive(false);
+        }
+
+        if (target == null) return;
+
+        SetBoxLetter(target, letter);
+        target.SetActive(true);
+    }
+
+    private static void SetBoxLetter(GameObject box, string letter)
+    {
+        if (box == null || string.IsNullOrEmpty(letter)) return;
+
+        InteractableCL interactable = box.GetComponent<InteractableCL>();
+        TMP_Text text = interactable != null ? interactable.LetterText : null;
+
+        if (text != null) text.text = letter;
     }
 
     // ---------------------------------------------------------------- áudio
