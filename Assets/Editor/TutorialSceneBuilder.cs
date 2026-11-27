@@ -124,16 +124,22 @@ public static class TutorialSceneBuilder
     [MenuItem("Tools/Tutorial/Gerar cena 5-Tutorial", false, 10)]
     public static void BuildScene()
     {
-        if (!EditorUtility.DisplayDialog(
-                "Gerar 5-Tutorial",
-                $"Isto recria '{TargetScenePath}' a partir de '{SourceScenePath}'.\n\n" +
-                "Tudo que tiver sido editado à mão na cena do tutorial será perdido.\n\nContinuar?",
-                "Gerar", "Cancelar"))
+        // Em batchmode não existe quem responda: o Unity cancela qualquer DisplayDialog sozinho
+        // ("This should not be called when not controlled by a human") e a geração abortaria sem
+        // escrever a cena. O aviso continua valendo para quem roda pelo menu do Editor.
+        if (!Application.isBatchMode)
         {
-            return;
-        }
+            if (!EditorUtility.DisplayDialog(
+                    "Gerar 5-Tutorial",
+                    $"Isto recria '{TargetScenePath}' a partir de '{SourceScenePath}'.\n\n" +
+                    "Tudo que tiver sido editado à mão na cena do tutorial será perdido.\n\nContinuar?",
+                    "Gerar", "Cancelar"))
+            {
+                return;
+            }
 
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        }
 
         if (AssetDatabase.LoadAssetAtPath<SceneAsset>(SourceScenePath) == null)
         {
@@ -195,7 +201,7 @@ public static class TutorialSceneBuilder
     {
         if (SceneManager.GetActiveScene().path != TargetScenePath)
         {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(TargetScenePath) == null)
             {
                 Debug.LogError($"[TutorialSceneBuilder] {TargetScenePath} não existe. Rode 'Gerar cena 5-Tutorial' primeiro.");

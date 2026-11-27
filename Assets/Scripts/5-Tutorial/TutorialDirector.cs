@@ -47,8 +47,11 @@ public class TutorialDirector : MonoBehaviour
     [SerializeField] private float moveTimeout = 8f;
 
     [Header("Validação de âncoras")]
-    [Tooltip("Distância máxima entre a âncora e o centro do collider do alvo (interactionRadius do player é 1.5).")]
+    [Tooltip("Só é usado se o PlayerControllerCL não for encontrado. Normalmente o alcance vem do interactionRadius do player da cena (Core.unity: 10).")]
     [SerializeField] private float maxAnchorDistance = 1f;
+
+    /// <summary>Fração do interactionRadius exigida da âncora, como margem para o robô parar torto.</summary>
+    private const float AnchorReachSafety = 0.9f;
 
     // ---- estado público ----
 
@@ -248,9 +251,15 @@ public class TutorialDirector : MonoBehaviour
     }
 
     /// <summary>
-    /// O auto-andar precisa terminar dentro do interactionRadius do alvo (1.5 no Inspector do
-    /// player), senão o Space não encontra nada no OverlapSphere. Regra: âncora a no máximo
-    /// maxAnchorDistance (1.0) unidade do centro do collider do alvo.
+    /// O auto-andar precisa terminar dentro do interactionRadius do player, senão o Space não
+    /// encontra nada no OverlapSphere.
+    ///
+    /// O raio é lido do player da cena, não de uma constante: o default do script é 1.5, mas o
+    /// valor serializado no Player de Core.unity é 10, e é o do Inspector que vale em jogo.
+    ///
+    /// Com um raio grande, estar no alcance não basta — PlayerControllerCL interage com o
+    /// interactible MAIS PRÓXIMO, então uma âncora de onde outro alvo fique mais perto faria a
+    /// criança pegar a letra errada e o passo nunca concluir.
     /// </summary>
     private void ValidateAnchor(Transform anchor, GameObject target, int roundNumber, string fieldName)
     {
@@ -264,13 +273,53 @@ public class TutorialDirector : MonoBehaviour
 
         Vector3 targetCenter = GetInteractionCenter(target);
         float distance = Vector3.Distance(anchor.position, targetCenter);
+        float reach = player != null ? player.interactionRadius : maxAnchorDistance;
 
-        if (distance > maxAnchorDistance)
+        if (distance > reach * AnchorReachSafety)
         {
             Debug.LogError(
                 $"[TutorialDirector] Âncora '{anchor.name}' ({fieldName} da rodada {roundNumber}) está a " +
-                $"{distance:F2} unidades do centro do collider de '{target.name}' — o máximo é {maxAnchorDistance:F2}. " +
-                "O robô vai parar fora do alcance de interação do player (interactionRadius 1.5) e o Space não vai achar o alvo.");
+                $"{distance:F2} unidades do centro do collider de '{target.name}', acima do limite de " +
+                $"{reach * AnchorReachSafety:F2} (interactionRadius {reach:F2} com margem de {AnchorReachSafety:P0}). " +
+                "O robô vai parar fora do alcance e o Space não vai achar o alvo.");
+            return;
+        }
+
+        WarnIfAnotherTargetIsCloser(anchor, target, roundNumber, fieldName, distance);
+    }
+
+    /// <summary>
+    /// Avisa quando, da âncora, outro interactible fica mais perto que o alvo: é ele que o Space
+    /// pegaria. Só avisa — a hierarquia do alvo varia (a mesa guarda a caixa como filha), e um
+    /// LogError aqui poderia ser falso.
+    /// </summary>
+    private void WarnIfAnotherTargetIsCloser(Transform anchor, GameObject target, int roundNumber,
+        string fieldName, float targetDistance)
+    {
+        if (player == null) return;
+
+        Collider[] colliders = Physics.OverlapSphere(anchor.position, player.interactionRadius, player.interactionLayer);
+
+        foreach (Collider hit in colliders)
+        {
+            InteractableCL interactable = hit.GetComponent<InteractableCL>();
+            if (interactable == null) continue;
+
+            GameObject found = interactable.gameObject;
+
+            // O próprio alvo, ou algo da família dele (a caixa que mora na mesa), não é concorrente.
+            if (found == target || found.transform.IsChildOf(target.transform) ||
+                target.transform.IsChildOf(found.transform)) continue;
+
+            float otherDistance = Vector3.Distance(anchor.position, hit.transform.position);
+
+            if (otherDistance < targetDistance)
+            {
+                Debug.LogWarning(
+                    $"[TutorialDirector] Da âncora '{anchor.name}' ({fieldName} da rodada {roundNumber}), " +
+                    $"'{found.name}' está a {otherDistance:F2} e o alvo '{target.name}' a {targetDistance:F2}: " +
+                    "o Space pegaria o mais próximo, não o alvo.");
+            }
         }
     }
 

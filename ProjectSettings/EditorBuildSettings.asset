@@ -20,5 +20,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/4-Audio_Images.unity
     guid: 858e6b1362a1a9673b3e5dc7b3dca976
+  - enabled: 1
+    path: Assets/Scenes/5-Tutorial.unity
+    guid: 41f897d8a579b40389d84316bb939c3b
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

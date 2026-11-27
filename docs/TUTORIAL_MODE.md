@@ -105,10 +105,18 @@ caminho real do NavMesh não bater com a linha reta.
 
 ### Âncoras e raio de interação
 
-O auto-andar precisa terminar **dentro** do `interactionRadius` do alvo, senão o `Space` não
-encontra nada no `OverlapSphere`. Regra: âncora a no máximo **1.0** unidade do centro do collider
-do alvo (raio é 1.5, com margem). O director valida isso no `Start` e emite `Debug.LogError`
-nomeando a âncora fora do alcance.
+O auto-andar precisa terminar **dentro** do `interactionRadius` do player, senão o `Space` não
+encontra nada no `OverlapSphere`.
+
+**Correção:** uma versão anterior deste contrato dizia que o raio era 1.5 e exigia a âncora a no
+máximo 1.0 do alvo. 1.5 é só o *default* do campo em `PlayerControllerCL.cs`; o valor serializado
+no Player em `Core.unity` é **10**, e é o do Inspector que vale em jogo. O director lê o raio do
+player da cena e exige a âncora dentro de 90% dele.
+
+Com raio grande, estar no alcance não basta: `GetClosestInteractible` devolve o interactible
+**mais próximo**, então uma âncora de onde outro alvo fique mais perto faria a criança pegar a
+letra errada e o passo nunca concluir. O director valida as duas coisas no `Start` — `LogError`
+para fora de alcance, `LogWarning` quando outro interactible está mais perto que o alvo.
 
 Chegada: `!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance`, com timeout
 de segurança de 8 segundos (não escalado) que faz `agent.Warp(âncora)` e segue — o tutorial nunca
