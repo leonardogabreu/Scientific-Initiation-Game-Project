@@ -6155,6 +6155,8 @@ MonoBehaviour:
     sceneName: 3-Audio_Words
   - displayName: Fase 3 - Imagem e Escuta
     sceneName: 4-Audio_Images
+  - displayName: Tutorial
+    sceneName: 5-Tutorial
   buttonContainerParent: {fileID: 1412919686}
   levelButtonTemplate: {fileID: 784334951}
   unlockAll: 1
