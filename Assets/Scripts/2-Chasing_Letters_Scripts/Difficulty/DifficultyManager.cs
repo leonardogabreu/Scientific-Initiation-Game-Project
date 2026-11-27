@@ -62,6 +62,19 @@ public class DifficultyManager : MonoBehaviour
 
     public static bool HasInstance => _instance != null;
 
+    /// <summary>
+    /// true durante a sessão do modo tutorial, onde nenhuma métrica pode ser coletada.
+    ///
+    /// O TutorialDirector só existe na cena do tutorial, então a presença da instância
+    /// identifica a <b>sessão inteira</b> — inclusive os instantes em que o tutorial ainda não
+    /// começou ou já terminou, quando TutorialDirector.IsActive volta a false mas a última
+    /// rodada ainda está fechando telemetria (FinishWordAttempt da terceira letra).
+    ///
+    /// No tutorial a criança é levada até a resposta certa: deixar isso entrar nas métricas
+    /// faria o sistema concluir que ela domina o conteúdo e endurecer as fases reais.
+    /// </summary>
+    public static bool IsTutorialSession => TutorialDirector.Instance != null;
+
     public static DifficultyManager Instance
     {
         get
@@ -165,6 +178,10 @@ public class DifficultyManager : MonoBehaviour
     // Chamado para registrar um evento coletado. Interface da classe
     public void RegisterCollectedData(MetricType metricType, float capturedData)
     {
+        // Rede de segurança para qualquer ponto de coleta, atual ou futuro: no tutorial a
+        // métrica é descartada aqui mesmo, antes do log, que é o que o teste manual confere.
+        if (IsTutorialSession) return;
+
 #if UNITY_EDITOR
         Debug.Log($"[DifficultyManager] {metricType} = {capturedData}");
 #endif
@@ -276,6 +293,12 @@ public class DifficultyManager : MonoBehaviour
 
     public void DynamicDifficultyAdjustments()      // Chamado uma vez, ao acertar uma palavra
     {
+        if (IsTutorialSession)
+        {
+            Debug.Log("[DifficultyManager] Ajuste ignorado: sessão de tutorial não mede a criança.");
+            return;
+        }
+
         foreach(MetricGroup metricGroup in metricGroupsList)
         {
             AdjustGroup(metricGroup.group);

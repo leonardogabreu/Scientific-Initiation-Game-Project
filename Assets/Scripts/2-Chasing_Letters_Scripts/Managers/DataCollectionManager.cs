@@ -127,7 +127,10 @@ public class DataCollectionManager : MonoBehaviour
             time = ElapsedOnWord
         });
 
-        DifficultyManager.Instance.RegisterCollectedData(MetricType.RightLetterInputs, IsLetterInRightSlot(letter, slot));
+        if (IsResearchSession)
+        {
+            DifficultyManager.Instance.RegisterCollectedData(MetricType.RightLetterInputs, IsLetterInRightSlot(letter, slot));
+        }
     }
 
     /// <summary>
@@ -153,7 +156,7 @@ public class DataCollectionManager : MonoBehaviour
             time = ElapsedOnWord
         });
 
-        if (source == "table" && LetterMoved(given))
+        if (IsResearchSession && source == "table" && LetterMoved(given))
         {
             DifficultyManager.Instance.RegisterCollectedData(MetricType.RightLetterInputs, IsLetterInRightSlot(given, slot));
         }
@@ -211,7 +214,7 @@ public class DataCollectionManager : MonoBehaviour
             time = ElapsedOnWord
         });
 
-        if (wasCompleteAttempt)
+        if (IsResearchSession && wasCompleteAttempt)
         {
             ChasingLettersApiManager.Instance?.SubmitResponse(currentWordAttempt.challengeId, false);
         }
@@ -236,7 +239,10 @@ public class DataCollectionManager : MonoBehaviour
             time_since_hint_available = timeSinceHintAvailable
         });
 
-        DifficultyManager.Instance.RegisterCollectedData(MetricType.TimeUntilHint, timeSinceHintAvailable);
+        if (IsResearchSession)
+        {
+            DifficultyManager.Instance.RegisterCollectedData(MetricType.TimeUntilHint, timeSinceHintAvailable);
+        }
     }
 
     public void RegisterAudioReplay()
@@ -256,6 +262,36 @@ public class DataCollectionManager : MonoBehaviour
         });
     }
 
+    /// <summary>
+    /// Um passo do modo tutorial foi concluído com a ação correta.
+    ///
+    /// <paramref name="timeToAction"/> é tempo <b>não escalado</b> (o tutorial congela a tela com
+    /// Time.timeScale = 0 nos passos de espera) e, junto com <paramref name="wrongKeys"/>, é a
+    /// métrica de tempo de reação que o modo tutorial existe para produzir.
+    ///
+    /// Diferente dos outros métodos daqui, este não desiste quando não há tentativa de palavra
+    /// ativa: o passo Cue de uma rodada pode acontecer antes do StartNewWordAttempt, que só roda
+    /// no callback de SelectNewWord — e perder o tempo de reação por causa disso seria perder
+    /// justamente o dado novo. Os campos da palavra saem vazios nesse caso.
+    /// </summary>
+    public void RegisterTutorialStep(int roundIndex, string step, KeyCode requestedKey, float timeToAction, int wrongKeys, string wrongKeysPressed)
+    {
+        GameEventReporter.Instance?.Report("tutorial_step", new TutorialStepPayload
+        {
+            session_number = SessionNumber,
+            word_index = currentWordAttempt?.wordIndex ?? 0,
+            challenge_id = currentWordAttempt?.challengeId ?? "",
+            word = currentWordAttempt?.targetWord ?? "",
+            round_index = roundIndex,
+            step = step ?? "",
+            requested_key = requestedKey.ToString(),
+            awaits_input = requestedKey != KeyCode.None,
+            time = timeToAction,
+            wrong_keys = wrongKeys,
+            wrong_keys_pressed = wrongKeysPressed ?? ""
+        });
+    }
+
     public void CountSavedOrBurnedLetters(bool saved)
     {
         if(currentWordAttempt == null) return;
@@ -263,7 +299,10 @@ public class DataCollectionManager : MonoBehaviour
         if (saved) currentWordAttempt.usefulLettersSaved++;  
         else currentWordAttempt.usefulLettersBurned++;
 
-        DifficultyManager.Instance.RegisterCollectedData(MetricType.ReachableLetterCaught, saved);
+        if (IsResearchSession)
+        {
+            DifficultyManager.Instance.RegisterCollectedData(MetricType.ReachableLetterCaught, saved);
+        }
     }
     public void FinishWordAttempt()
     {
@@ -294,10 +333,13 @@ public class DataCollectionManager : MonoBehaviour
             audio_replays = currentWordAttempt.audioReplaysCount
         });
 
-        ChasingLettersApiManager.Instance?.SubmitResponse(currentWordAttempt.challengeId, true);
+        if (IsResearchSession)
+        {
+            ChasingLettersApiManager.Instance?.SubmitResponse(currentWordAttempt.challengeId, true);
 
-        DifficultyManager.Instance.RegisterCollectedData(MetricType.NumberOfHints ,currentWordAttempt.hintsCount);
-        DifficultyManager.Instance.RegisterCollectedData(MetricType.MissedAttemps, currentWordAttempt.distinctMistakesCount);
+            DifficultyManager.Instance.RegisterCollectedData(MetricType.NumberOfHints ,currentWordAttempt.hintsCount);
+            DifficultyManager.Instance.RegisterCollectedData(MetricType.MissedAttemps, currentWordAttempt.distinctMistakesCount);
+        }
 
         currentWordAttempt = null;
     }
@@ -325,6 +367,18 @@ public class DataCollectionManager : MonoBehaviour
     /// trajetória ganharia eventos de letras que nunca se moveram.
     /// </summary>
     private static bool LetterMoved(string letter) => !string.IsNullOrEmpty(letter);
+
+    /// <summary>
+    /// false na sessão de tutorial. Lá a criança é guiada até a resposta certa, então nada do
+    /// que ela faz pode alimentar o DifficultyManager — o sistema concluiria que ela domina o
+    /// conteúdo e endureceria as fases reais, o oposto do que se quer — nem contar como resposta
+    /// a um desafio em /api/word-challenges/responses, que é o que faz a plataforma parar de
+    /// sortear a palavra para o aluno.
+    ///
+    /// Os eventos de /api/events/game continuam sendo enviados normalmente: eles vão marcados com
+    /// game_mode "tutorial" e dá para filtrar na análise.
+    /// </summary>
+    private static bool IsResearchSession => !DifficultyManager.IsTutorialSession;
 
     private int SessionNumber => WebGLManager.Instance?.SessionNumber ?? 0;
 
@@ -427,6 +481,22 @@ public class DataCollectionManager : MonoBehaviour
         public string word;
         public int replay_number;
         public float time;
+    }
+
+    [System.Serializable]
+    private class TutorialStepPayload
+    {
+        public int session_number;
+        public int word_index;
+        public string challenge_id;
+        public string word;                // a letra da rodada do tutorial
+        public int round_index;            // 0-based
+        public string step;                // TutorialStepKind
+        public string requested_key;       // tecla pedida; "None" nos passos automáticos
+        public bool awaits_input;          // false nos passos de áudio, auto-andar e entrega
+        public float time;                 // segundos não escalados até a ação correta
+        public int wrong_keys;             // teclas erradas antes de acertar
+        public string wrong_keys_pressed;  // quais, em ordem, separadas por vírgula
     }
 
     [System.Serializable]
