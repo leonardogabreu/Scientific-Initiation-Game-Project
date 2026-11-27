@@ -154,6 +154,14 @@ public class TutorialDirector : MonoBehaviour
         CurrentRoundIndex = 0;
 
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
+
+        // A primeira rodada do modo infinito tem de existir já aqui, e não no StartTutorial.
+        // ChasingLettersGameManager.Start() chama SelectNewWord(), que pede a letra ao
+        // TutorialChallengeSource, que a lê de CurrentLetter: sem letra, targetWord fica vazio,
+        // IsWordReady fica false e o botão INICIAR parece não fazer nada (StartGameWhenWordIsReady
+        // fica 20s esperando em silêncio). Unity roda todos os Awake da cena antes de qualquer
+        // Start, então preparar aqui garante a ordem.
+        EnsureEndlessRoundReady();
     }
 
     void OnEnable()
@@ -355,7 +363,12 @@ public class TutorialDirector : MonoBehaviour
         Collider collider = target.GetComponent<Collider>();
         if (collider == null) collider = target.GetComponentInChildren<Collider>(true);
 
-        return collider != null ? collider.bounds.center : target.transform.position;
+        // Collider.bounds de objeto inativo ou com o collider desabilitado vem zerado. No modo
+        // infinito as caixas que não são da rodada ficam desligadas, então medir por elas daria
+        // distância falsa e erro de validação inventado.
+        bool boundsAreUsable = collider != null && collider.enabled && collider.gameObject.activeInHierarchy;
+
+        return boundsAreUsable ? collider.bounds.center : target.transform.position;
     }
 
     // ---------------------------------------------------------------- ciclo
@@ -377,22 +390,12 @@ public class TutorialDirector : MonoBehaviour
         RoundsCompleted = 0;
         IsRunning = true;
 
-        if (endlessMode)
+        // Idempotente de propósito: a rodada já foi preparada no Awake, e re-sortear aqui
+        // trocaria a letra depois de o targetWord ter sido montado a partir dela.
+        if (!EnsureEndlessRoundReady())
         {
-            letterPool = TutorialLetterLibrary.Load();
-
-            if (letterPool.Count == 0)
-            {
-                Debug.LogError(
-                    "[TutorialDirector] Modo infinito sem letras: nenhum AudioWord de uma letra com áudio em " +
-                    $"Resources/{TutorialLetterLibrary.ResourcesFolder}. O tutorial não vai começar.");
-                IsRunning = false;
-                return;
-            }
-
-            lastLetter = null;
-            slotCursor = -1;
-            PrepareEndlessRound();
+            IsRunning = false;
+            return;
         }
 
         // Depois de uma sessão completa o targetWord ficou parado na letra da última rodada
@@ -798,6 +801,33 @@ public class TutorialDirector : MonoBehaviour
     }
 
     // -------------------------------------------------------- modo infinito
+
+    /// <summary>
+    /// Garante que existe uma rodada do modo infinito pronta, carregando o pool de letras na
+    /// primeira chamada. Seguro de chamar várias vezes: só sorteia se ainda não houver letra.
+    /// </summary>
+    /// <returns>false quando o modo infinito está ligado e não há nenhuma letra com áudio.</returns>
+    private bool EnsureEndlessRoundReady()
+    {
+        if (!endlessMode) return true;
+
+        if (letterPool == null || letterPool.Count == 0)
+        {
+            letterPool = TutorialLetterLibrary.Load();
+        }
+
+        if (letterPool.Count == 0)
+        {
+            Debug.LogError(
+                "[TutorialDirector] Modo infinito sem letras: nenhum AudioWord de uma letra com áudio em " +
+                $"Resources/{TutorialLetterLibrary.ResourcesFolder}. O tutorial não vai começar.");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(endlessRound.letter)) PrepareEndlessRound();
+
+        return true;
+    }
 
     /// <summary>
     /// Monta a rodada seguinte: sorteia a letra e a posição da caixa, escreve a letra na caixa
