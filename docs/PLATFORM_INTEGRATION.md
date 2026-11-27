@@ -62,6 +62,11 @@ Para análise, este endpoint é redundante: `word_completed` e `word_mistake` em
 `/api/events/game` carregam o mesmo `challenge_id` e muito mais contexto. Ele existe aqui pelo
 efeito no sorteio, não pelo dado.
 
+**A sessão de tutorial (`game_mode: tutorial`) não envia resposta nenhuma aqui.** Lá a criança é
+guiada até a letra certa, então registrar isso como desafio respondido corretamente faria a
+plataforma despriorizar palavras que ela nunca montou sozinha. As letras do tutorial também vêm
+da própria cena, não da API, então o `challenge_id` sai vazio nos eventos dessa sessão.
+
 ## 4. Eventos de jogo
 
 `POST /api/events/game` → `{ event_type, game_id, payload }`
@@ -80,6 +85,7 @@ carregam `session_number`.
 | `word_mistake` | entrega errada na zona de submit | `word_index`, `challenge_id`, `word`, `submitted_word`, `mistake_number`, `complete`, `time` |
 | `hint_used` | aluno pede dica | `word_index`, `challenge_id`, `word`, `hint_number`, `time` |
 | `audio_replayed` | aluno aperta o botão para ouvir a palavra de novo (só na fase de escuta) | `word_index`, `challenge_id`, `word`, `replay_number`, `time` |
+| `tutorial_step` | passo do modo tutorial concluído com a ação correta | `round_index`, `step`, `requested_key`, `awaits_input`, `time`, `wrong_keys`, `wrong_keys_pressed`, mais `word_index`, `challenge_id`, `word` |
 | `word_completed` | palavra montada corretamente | `word_index`, `challenge_id`, `word`, `mistakes`, `hints`, `actions`, `time`, `first_try`, `audio_replays` |
 | `finish_session` | última palavra concluída | `words_completed`, `total_mistakes`, `total_time` |
 
@@ -87,14 +93,51 @@ carregam `session_number`.
 partir do início da palavra (ou da sessão, em `finish_session`).
 
 `game_mode` diz de qual fase vieram os dados: `word_image` (montar a palavra da imagem),
-`audio_word` (fase de escuta: montar a palavra ouvida) ou `audio_image` (fase de figuras: ouvir a
-palavra e entregar a figura certa). Em `audio_image` cada caixa é uma figura inteira, então os
+`audio_word` (fase de escuta: montar a palavra ouvida), `audio_image` (fase de figuras: ouvir a
+palavra e entregar a figura certa) ou `tutorial` (modo guiado — ver 4.1). Em `audio_image` cada caixa é uma figura inteira, então os
 campos de letra (`letter` nos eventos de pegar, soltar e trocar) trazem a palavra da figura, como
 `GATO`. Nas fases de áudio, `audio_replays` conta só os toques pedidos pelo aluno, não os
 automáticos do início de cada palavra.
 
 Em `word_mistake`, `complete: false` marca a entrega feita com mesas ainda vazias — é ruído de
 manuseio, não erro de conteúdo, e vale filtrar na análise.
+
+### 4.1 Modo tutorial (`game_mode: tutorial`)
+
+Modo guiado para crianças com síndrome de Down: a tela congela e só destrava quando a criança
+aperta exatamente a tecla de navegação pedida, que então leva o robô automaticamente até o alvo.
+São 3 rodadas de uma letra cada, na cena `5-Tutorial`.
+
+**Estes dados ficam fora das métricas de desempenho.** A criança é conduzida até a resposta
+certa, então acerto, tempo de palavra e número de erros não dizem nada sobre o que ela sabe —
+tratar como se dissessem levaria a concluir que ela domina o conteúdo. Do lado do jogo, a sessão
+de tutorial não alimenta o ajuste dinâmico de dificuldade nem o `/api/word-challenges/responses`.
+Do lado do backend, **filtre `game_mode = "tutorial"` em qualquer agregação de desempenho**
+(`word_completed`, `word_mistake`, `letter_*`, `finish_session`). O campo `adjustment_system_type`
+do `start_session` continua refletindo a configuração do jogo, mas nenhum ajuste roda nessa
+sessão.
+
+O que o tutorial produz de dado novo e aproveitável é **tempo de reação**, no evento
+`tutorial_step`:
+
+| Campo | O que é |
+| --- | --- |
+| `round_index` | rodada, 0-based (0, 1, 2) |
+| `step` | passo da máquina de estados: `Cue`, `AwaitKeyToBelt`, `MoveToBelt`, `AwaitPick`, `AwaitKeyToTable`, `MoveToTable`, `AwaitPlace`, `RoundComplete` |
+| `requested_key` | `KeyCode` que o passo pediu (`UpArrow`, `LeftArrow`, `Space`...), ou `None` nos passos automáticos |
+| `awaits_input` | `true` só nos passos que esperam uma tecla — é o filtro para o tempo de reação |
+| `time` | segundos **não escalados** entre o início do passo e a ação correta (o tutorial roda com `Time.timeScale = 0` nos passos de espera, então o tempo escalado não serviria) |
+| `wrong_keys` | quantas teclas erradas a criança apertou antes de acertar esse passo |
+| `wrong_keys_pressed` | quais, em ordem, separadas por vírgula (ex.: `DownArrow,DownArrow,A`) — mostra se ela confundiu o eixo ou errou por perto |
+
+Tecla errada não avança o jogo nem pune: o ícone da tecla pulsa e o áudio da letra toca de novo.
+Cada repetição dessas também vira um `audio_replayed`, e por isso `audio_replays` no
+`word_completed` da rodada é a contagem de repetições de áudio do tutorial.
+
+Os campos de palavra (`word_index`, `challenge_id`, `word`) vêm da rodada em curso: `word` é a
+letra da rodada e `challenge_id` sai sempre vazio. O `tutorial_step` é o único evento que tolera
+não haver rodada aberta ainda — o passo `Cue` pode acontecer antes do início da tentativa de
+palavra, e nesse caso esses três campos saem vazios/zerados, mas o tempo de reação é preservado.
 
 **Trajetória.** Os quatro eventos de letra reconstroem a montagem passo a passo: `action_index`
 é sequencial dentro da palavra e `slot` é a posição na palavra (0 = primeira letra, -1 quando
